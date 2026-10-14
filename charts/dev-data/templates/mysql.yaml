@@ -35,7 +35,8 @@ spec:
       containers:
         - name: mysql
           image: {{ .Values.mysql.image }}
-          args: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00"]
+          # log_bin_trust_function_creators: the app user creates the M03 append-only triggers (settings_history).
+          args: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00", "--log-bin-trust-function-creators=1"]
           env:
             - { name: TZ, value: UTC }
             - { name: MYSQL_DATABASE, value: {{ .Values.mysql.database | quote }} }

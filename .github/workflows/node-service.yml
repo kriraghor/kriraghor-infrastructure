@@ -63,7 +63,8 @@ jobs:
           cache: npm
       - name: Test database
         run: |
-          mysql -h 127.0.0.1 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS kriraghor_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci; GRANT ALL ON kriraghor_test.* TO 'kriraghor'@'%';"
+          mysql -h 127.0.0.1 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS kriraghor_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci; GRANT ALL ON kriraghor_test.* TO 'kriraghor'@'%'; SET PERSIST log_bin_trust_function_creators = 1;"
+          # ^ M03 migrations create append-only triggers as the app user; service containers cannot take server args.
       - run: npm ci
       - run: npm run lint
       - run: npm test
