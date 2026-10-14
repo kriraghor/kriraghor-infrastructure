@@ -1,6 +1,6 @@
 # REST API. Loaded after values/backend/dev.yaml.
 nameOverride: backend-api
-command: ["node", "src/server.js"]
+args: ["src/server.js"]
 containerPort: 4000
 opsPort: 9464
 
