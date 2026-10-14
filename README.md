@@ -70,6 +70,12 @@ Then open:
 - http://admin.kriraghor.localhost (staff sign-in with TOTP)
 - http://mail.kriraghor.localhost (OTP emails)
 
+Run the end-to-end check (SSO across subdomains, staff TOTP, host routing):
+
+```bash
+cd local/e2e && npm install && npx playwright install chromium && npx playwright test
+```
+
 Rebuild one app after a change: `local/build-images.sh web && local/deploy.sh web` (images use `pullPolicy: Always`).
 
 Tear down: `local/down.sh` (add `--all` to also remove the registry).

@@ -1,0 +1,12 @@
+{
+  "name": "kriraghor-e2e-local",
+  "private": true,
+  "description": "0B exit check: the whole stack in k3d, SSO across subdomains, staff TOTP on the admin portal",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "otplib": "12.0.1"
+  }
+}
