@@ -1,0 +1,62 @@
+# Next.js (output: 'standalone'). Public config is served at runtime from /env.js (ADR-003),
+# so the same image runs in every environment.
+nameOverride: portal
+image:
+  repository: ghcr.io/kriraghor/kriraghor-portal
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+containerPort: 3000
+opsPort: 0
+probes:
+  liveness: { path: /api/health, periodSeconds: 10, failureThreshold: 3 }
+  readiness: { path: /api/health, periodSeconds: 5, failureThreshold: 2 }
+  startup: { path: /api/health, periodSeconds: 3, failureThreshold: 40 }
+writableDirs:
+  - /tmp
+  - /app/.next/cache
+
+replicaCount: 1
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+pdb:
+  enabled: false
+  minAvailable: 1
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits: { memory: 512Mi }
+env:
+  NODE_ENV: production
+  PORT: "3000"
+  HOSTNAME: 0.0.0.0
+  # Browser-facing (served through /env.js)
+  API_URL: https://api.staging.kriraghor.com/api/v1
+  REALTIME_URL: https://api.staging.kriraghor.com
+  WEB_URL: https://staging.kriraghor.com
+  ESPORTS_URL: https://esports.staging.kriraghor.com
+  ADMIN_URL: https://admin.staging.kriraghor.com
+  VENDOR_URL: https://vendor.staging.kriraghor.com
+  COOKIE_PREFIX: kgstg
+  GOOGLE_CLIENT_ID: ""
+  APP_ENV: staging
+  # Server-side only: server components call the API inside the cluster
+  INTERNAL_API_URL: http://backend-api.kriraghor.svc.cluster.local/api/v1
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging-dns
+  hosts:
+    - host: admin.staging.kriraghor.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: vendor.staging.kriraghor.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: portal-tls
+      hosts: [admin.staging.kriraghor.com, vendor.staging.kriraghor.com]

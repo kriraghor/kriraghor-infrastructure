@@ -1,0 +1,34 @@
+{{- if and .Values.networkPolicy.enabled (eq .Values.kind "Deployment") }}
+# Ingress allowlist: the ingress controller (main port), Prometheus (ops port) and, optionally,
+# pods in the same namespace. Egress stays open: the managed MySQL and Redis live outside the cluster.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "app.name" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "app.selector" . | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    {{- if .Values.containerPort }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.ingressNamespace }}
+        {{- if .Values.networkPolicy.allowSameNamespace }}
+        - podSelector: {}
+        {{- end }}
+      ports:
+        - port: http
+    {{- end }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.monitoringNamespace }}
+      ports:
+        - port: {{ if .Values.opsPort }}ops{{ else }}http{{ end }}
+    # The kubelet runs probes from the node, which NetworkPolicy does not block.
+{{- end }}

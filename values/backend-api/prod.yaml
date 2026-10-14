@@ -1,0 +1,32 @@
+# REST API. Loaded after values/backend/prod.yaml.
+nameOverride: backend-api
+command: ["node", "src/server.js"]
+containerPort: 4000
+opsPort: 9464
+
+replicaCount: 2
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+pdb:
+  enabled: true
+  minAvailable: 1
+resources:
+  requests: { cpu: 200m, memory: 256Mi }
+  limits: { memory: 512Mi }
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod-dns
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+  hosts:
+    - host: api.kriraghor.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: api-tls
+      hosts: [api.kriraghor.com]

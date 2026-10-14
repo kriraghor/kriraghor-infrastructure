@@ -1,0 +1,32 @@
+# REST API. Loaded after values/backend/staging.yaml.
+nameOverride: backend-api
+command: ["node", "src/server.js"]
+containerPort: 4000
+opsPort: 9464
+
+replicaCount: 1
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+pdb:
+  enabled: false
+  minAvailable: 1
+resources:
+  requests: { cpu: 200m, memory: 256Mi }
+  limits: { memory: 512Mi }
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging-dns
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+  hosts:
+    - host: api.staging.kriraghor.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: api-tls
+      hosts: [api.staging.kriraghor.com]

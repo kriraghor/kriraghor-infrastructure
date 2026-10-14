@@ -1,0 +1,18 @@
+# Copy to kriraghor-backend/.github/workflows/ci.yml
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: kriraghor/kriraghor-infra/.github/workflows/node-service.yml@main
+    with:
+      image: kriraghor-backend
+      values-files: values/backend/staging.yaml
+    secrets: inherit

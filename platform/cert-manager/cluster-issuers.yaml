@@ -1,0 +1,37 @@
+# Let's Encrypt issuers for staging and prod (ADR-003). DNS-01 through Cloudflare, so wildcard
+# certificates work later (e.g. *.esports.kriraghor.com for M22 organisers).
+# Needs the Secret "cloudflare-api-token" (key: api-token) in the cert-manager namespace,
+# created from the cloud secret manager; a Cloudflare token scoped to Zone.DNS edit on kriraghor.com.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging-dns
+spec:
+  acme:
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    email: ops@kriraghor.com
+    privateKeySecretRef:
+      name: letsencrypt-staging-account
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod-dns
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: ops@kriraghor.com
+    privateKeySecretRef:
+      name: letsencrypt-prod-account
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token

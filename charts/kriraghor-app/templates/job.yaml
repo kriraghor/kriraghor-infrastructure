@@ -1,0 +1,27 @@
+{{- if eq .Values.kind "Job" }}
+# One-off Job, e.g. database migrations (ADR-003: never on boot). As a Helm hook it runs before the
+# release's other resources on every install and upgrade; Argo CD treats it as a PreSync hook.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "app.name" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+  {{- if .Values.job.hook }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: {{ .Values.job.hookWeight | quote }}
+    helm.sh/hook-delete-policy: before-hook-creation
+  {{- end }}
+spec:
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.job.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "app.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      {{- include "app.podSpec" . | nindent 6 }}
+{{- end }}

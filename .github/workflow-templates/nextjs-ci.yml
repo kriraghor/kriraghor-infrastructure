@@ -1,0 +1,18 @@
+# Copy to kriraghor-<web|esports|portal>/.github/workflows/ci.yml and set APP.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ci:
+    uses: kriraghor/kriraghor-infra/.github/workflows/nextjs-app.yml@main
+    with:
+      image: kriraghor-web            # kriraghor-esports | kriraghor-portal
+      values-files: values/web/staging.yaml
+    secrets: inherit

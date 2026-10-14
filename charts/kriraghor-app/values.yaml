@@ -1,0 +1,135 @@
+# Defaults for one workload. Each app overrides these in values/<app>/<env>.yaml (ADR-003).
+
+nameOverride: ""
+# Deployment (long-running) or Job (one-off, e.g. migrations)
+kind: Deployment
+# Extra labels on every resource, e.g. { kriraghor.com/part-of: backend }
+labels: {}
+
+image:
+  repository: ghcr.io/kriraghor/kriraghor-backend
+  # Set per environment; CI bumps it by pull request. Empty falls back to the chart appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+command: []
+args: []
+
+replicaCount: 2
+
+# Main HTTP port of the container, exposed by the Service. 0 = no Service (e.g. the worker).
+containerPort: 4000
+# Probes and metrics port (backend processes). 0 = probes use containerPort (Next.js apps).
+opsPort: 9464
+
+probes:
+  liveness:
+    path: /health/live
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /health/ready
+    periodSeconds: 5
+    failureThreshold: 2
+  startup:
+    path: /health/live
+    periodSeconds: 3
+    failureThreshold: 40
+
+# Plain environment variables (non-secret config only).
+env: {}
+# Secrets and ConfigMaps loaded with envFrom (names in this namespace).
+envFromSecrets: []
+envFromConfigMaps: []
+
+# External Secrets Operator (staging and prod). Creates a Secret named <targetName> from the cloud
+# secret manager through the ClusterSecretStore, and loads it with envFrom.
+externalSecret:
+  enabled: false
+  storeName: kriraghor-secrets
+  storeKind: ClusterSecretStore
+  refreshInterval: 1h
+  # Key in the secret manager holding a JSON object of env vars, e.g. "prod/backend"
+  remoteKey: ""
+  targetName: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts: []
+  #  - host: api.kriraghor.com
+  #    paths:
+  #      - path: /
+  #        pathType: Prefix
+  tls: []
+  #  - secretName: api-kriraghor-com-tls
+  #    hosts: [api.kriraghor.com]
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 192Mi
+  limits:
+    memory: 384Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+networkPolicy:
+  enabled: true
+  # Namespaces allowed to reach the main port (the ingress controller) and the ops port (Prometheus).
+  ingressNamespace: ingress-nginx
+  monitoringNamespace: monitoring
+  # Same-namespace pods may always call the Service (e.g. Next.js server components calling the API).
+  allowSameNamespace: true
+
+serviceAccount:
+  create: true
+  automountToken: false
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+# Writable emptyDir mounts for read-only root filesystems (Next.js needs /app/.next/cache and /tmp).
+writableDirs:
+  - /tmp
+
+terminationGracePeriodSeconds: 30
+
+# Spread replicas across nodes when possible.
+topologySpread: true
+
+job:
+  # Run as a Helm hook (pre-install, pre-upgrade). Argo CD maps these to PreSync.
+  hook: true
+  hookWeight: "0"
+  backoffLimit: 1
+  activeDeadlineSeconds: 900
+  ttlSecondsAfterFinished: 86400

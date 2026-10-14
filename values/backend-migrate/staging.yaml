@@ -1,0 +1,15 @@
+# Schema migrations as a pre-install/pre-upgrade hook Job (ADR-003). Expand-and-contract only.
+nameOverride: backend-migrate
+kind: Job
+command: ["node", "node_modules/.bin/sequelize", "db:migrate"]
+containerPort: 0
+opsPort: 0
+networkPolicy:
+  enabled: false
+resources:
+  requests: { cpu: 50m, memory: 128Mi }
+  limits: { memory: 256Mi }
+job:
+  hook: true
+  backoffLimit: 1
+  activeDeadlineSeconds: 900

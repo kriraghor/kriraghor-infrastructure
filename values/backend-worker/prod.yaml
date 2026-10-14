@@ -1,0 +1,16 @@
+# BullMQ workers and job schedulers. No Service and no Ingress; probes and metrics on the ops port.
+nameOverride: backend-worker
+command: ["node", "src/worker.js"]
+containerPort: 0
+opsPort: 9464
+replicaCount: 2
+autoscaling:
+  enabled: false
+pdb:
+  enabled: true
+  minAvailable: 1
+# Running jobs finish before the pod exits (Worker.close waits for them).
+terminationGracePeriodSeconds: 120
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits: { memory: 512Mi }

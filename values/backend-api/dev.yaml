@@ -1,0 +1,28 @@
+# REST API. Loaded after values/backend/dev.yaml.
+nameOverride: backend-api
+command: ["node", "src/server.js"]
+containerPort: 4000
+opsPort: 9464
+
+replicaCount: 1
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+pdb:
+  enabled: false
+  minAvailable: 1
+resources:
+  requests: { cpu: 50m, memory: 160Mi }
+  limits: { memory: 384Mi }
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+  hosts:
+    - host: api.kriraghor.localhost
+      paths:
+        - path: /
+          pathType: Prefix

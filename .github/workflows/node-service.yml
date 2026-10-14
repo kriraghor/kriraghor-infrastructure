@@ -1,0 +1,84 @@
+# Reusable CI for kriraghor-backend (ADR-003):
+# lint → test (MySQL + Redis services) → OpenAPI check → build → Trivy → push to GHCR → image-tag PR in kriraghor-infra.
+# Called from the backend repo; see .github/workflow-templates/backend-ci.yml.
+# Pin third-party actions to commit SHAs with Dependabot once the repos are on GitHub.
+name: node-service
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: Image name under ghcr.io/kriraghor, e.g. kriraghor-backend
+        type: string
+        required: true
+      values-files:
+        description: Space-separated values files in kriraghor-infra whose image.tag is bumped on main
+        type: string
+        default: values/backend/staging.yaml
+      node-version:
+        type: string
+        default: "24.16.0"
+    secrets:
+      INFRA_PR_TOKEN:
+        description: Fine-grained token (or GitHub App token) with contents and pull-requests write on kriraghor-infra
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: kriraghor
+          MYSQL_USER: kriraghor
+          MYSQL_PASSWORD: kriraghor
+          MYSQL_ROOT_PASSWORD: root
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval 5s --health-retries 30
+      redis:
+        image: redis:7.4-alpine
+        ports: ["6379:6379"]
+        options: --health-cmd "redis-cli ping" --health-interval 5s --health-retries 30
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PASSWORD: kriraghor
+      REDIS_URL: redis://127.0.0.1:6379
+      JWT_ACCESS_SECRET: ci-access-secret-0123456789abcdefghijkl
+      JWT_SPECIAL_SECRET: ci-special-secret-0123456789abcdefghijk
+      CSRF_SECRET: ci-csrf-secret-0123456789abcdefghijklmnop
+      OTP_HASH_SECRET: ci-otp-hash-secret-0123
+      DATA_ENCRYPTION_KEY: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - name: Test database
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS kriraghor_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci; GRANT ALL ON kriraghor_test.* TO 'kriraghor'@'%';"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - name: OpenAPI is up to date (ADR-002)
+        run: npm run openapi -- --check
+      - name: Upload openapi.json (frontends sync from the release artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi
+          path: openapi.json
+
+  image:
+    needs: test
+    uses: kriraghor/kriraghor-infra/.github/workflows/build-scan-push.yml@main
+    with:
+      image: ${{ inputs.image }}
+      values-files: ${{ inputs.values-files }}
+    secrets: inherit

@@ -1,0 +1,32 @@
+# Sync wave 0: data (-2) → migrations (-1) → backend (0) → frontends (1).
+# For waves to wait on child health, Argo CD needs the Application health check enabled
+# (resource.customizations.health.argoproj.io_Application in argocd-cm; see README).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backend-worker-prod
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: kriraghor
+  sources:
+    - repoURL: https://github.com/kriraghor/kriraghor-infra.git
+      targetRevision: main
+      path: charts/kriraghor-app
+      helm:
+        releaseName: backend-worker
+        valueFiles:
+        - $values/values/backend/prod.yaml
+        - $values/values/backend-worker/prod.yaml
+    - repoURL: https://github.com/kriraghor/kriraghor-infra.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kriraghor
+  # Prod: deploys when the image-tag bump PR is merged (the PR review is the release gate).
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: [CreateNamespace=true]
