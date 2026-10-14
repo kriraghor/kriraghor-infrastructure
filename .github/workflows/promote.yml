@@ -18,7 +18,7 @@ jobs:
   promote:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Copy the staging tag to prod
         id: copy
         env:
@@ -27,7 +27,7 @@ jobs:
           TAG=$(yq '.image.tag' "values/${APP}/staging.yaml")
           yq -i ".image.tag = \"${TAG}\"" "values/${APP}/prod.yaml"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           branch: promote/${{ inputs.app }}
           commit-message: "chore(prod): promote ${{ inputs.app }} ${{ steps.copy.outputs.tag }}"
