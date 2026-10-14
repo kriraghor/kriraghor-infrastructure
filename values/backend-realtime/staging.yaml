@@ -1,7 +1,7 @@
 # Socket.IO. Shares the api host; ingress-nginx merges this /socket.io path into it.
 # Websocket-first; the cookie affinity only matters for the long-polling fallback (ADR-003).
 nameOverride: backend-realtime
-command: ["node", "src/realtime.js"]
+args: ["src/realtime.js"]
 containerPort: 4001
 opsPort: 9464
 

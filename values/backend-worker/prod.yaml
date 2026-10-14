@@ -1,6 +1,6 @@
 # BullMQ workers and job schedulers. No Service and no Ingress; probes and metrics on the ops port.
 nameOverride: backend-worker
-command: ["node", "src/worker.js"]
+args: ["src/worker.js"]
 containerPort: 0
 opsPort: 9464
 replicaCount: 2

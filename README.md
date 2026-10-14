@@ -31,14 +31,16 @@ local/                   k3d scripts (bash; Git Bash on Windows)
 
 | Release | Image / command | Dev host (k3d) | Prod host |
 |---|---|---|---|
-| `backend-api` | `kriraghor-backend` · `node src/server.js` | `api.kriraghor.localhost` | `api.kriraghor.com` |
-| `backend-realtime` | `kriraghor-backend` · `node src/realtime.js` | `api.kriraghor.localhost/socket.io` | `api.kriraghor.com/socket.io` |
-| `backend-worker` | `kriraghor-backend` · `node src/worker.js` | – | – |
-| `backend-migrate` | `kriraghor-backend` · `sequelize db:migrate` (pre-install/pre-upgrade hook Job) | – | – |
+| `backend-api` | `kriraghor-backend` · args `src/server.js` | `api.kriraghor.localhost` | `api.kriraghor.com` |
+| `backend-realtime` | `kriraghor-backend` · args `src/realtime.js` | `api.kriraghor.localhost/socket.io` | `api.kriraghor.com/socket.io` |
+| `backend-worker` | `kriraghor-backend` · args `src/worker.js` | – | – |
+| `backend-migrate` | `kriraghor-backend` · args `node_modules/sequelize-cli/lib/sequelize db:migrate` (pre-install/pre-upgrade hook Job) | – | – |
 | `web` | `kriraghor-web` | `kriraghor.localhost` | `kriraghor.com` (+ `www` redirect) |
 | `esports` | `kriraghor-esports` | `esports.kriraghor.localhost` | `esports.kriraghor.com` |
 | `portal` | `kriraghor-portal` | `admin.` and `vendor.kriraghor.localhost` | `admin.` and `vendor.kriraghor.com` |
 | `dev-data` (dev only) | MySQL, Redis, SeaweedFS, Mailpit | `mail.kriraghor.localhost` (Mailpit UI) | managed services outside the cluster |
+
+All images are distroless (Node is the entrypoint, no shell), so values pass the script as `args`, never `command`.
 
 Staging uses the same hosts under `staging.kriraghor.com` (e.g. `api.staging.kriraghor.com`) and `COOKIE_PREFIX=kgstg`, so staging and prod cookies never collide.
 
