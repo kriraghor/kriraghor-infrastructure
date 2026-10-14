@@ -1,0 +1,35 @@
+# Promote what runs in staging to prod by tag (never rebuilt). Opens a PR; merging it deploys prod.
+name: promote-to-prod
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: Which app to promote
+        type: choice
+        options: [backend, web, esports, portal]
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy the staging tag to prod
+        id: copy
+        env:
+          APP: ${{ inputs.app }}
+        run: |
+          TAG=$(yq '.image.tag' "values/${APP}/staging.yaml")
+          yq -i ".image.tag = \"${TAG}\"" "values/${APP}/prod.yaml"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: promote/${{ inputs.app }}
+          commit-message: "chore(prod): promote ${{ inputs.app }} ${{ steps.copy.outputs.tag }}"
+          title: "chore(prod): promote ${{ inputs.app }} ${{ steps.copy.outputs.tag }}"
+          body: Promotes the image running in staging to prod. Merge to deploy (Argo CD syncs prod from main).

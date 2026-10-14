@@ -1,0 +1,59 @@
+# Next.js (output: 'standalone'). Public config is served at runtime from /env.js (ADR-003),
+# so the same image runs in every environment.
+nameOverride: web
+image:
+  repository: ghcr.io/kriraghor/kriraghor-web
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+containerPort: 3000
+opsPort: 0
+probes:
+  liveness: { path: /api/health, periodSeconds: 10, failureThreshold: 3 }
+  readiness: { path: /api/health, periodSeconds: 5, failureThreshold: 2 }
+  startup: { path: /api/health, periodSeconds: 3, failureThreshold: 40 }
+writableDirs:
+  - /tmp
+  - /app/.next/cache
+
+replicaCount: 2
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+pdb:
+  enabled: true
+  minAvailable: 1
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits: { memory: 512Mi }
+env:
+  NODE_ENV: production
+  PORT: "3000"
+  HOSTNAME: 0.0.0.0
+  # Browser-facing (served through /env.js)
+  API_URL: https://api.kriraghor.com/api/v1
+  REALTIME_URL: https://api.kriraghor.com
+  WEB_URL: https://kriraghor.com
+  ESPORTS_URL: https://esports.kriraghor.com
+  ADMIN_URL: https://admin.kriraghor.com
+  VENDOR_URL: https://vendor.kriraghor.com
+  COOKIE_PREFIX: kg
+  GOOGLE_CLIENT_ID: ""
+  APP_ENV: prod
+  # Server-side only: server components call the API inside the cluster
+  INTERNAL_API_URL: http://backend-api.kriraghor.svc.cluster.local/api/v1
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod-dns
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+  hosts:
+    - host: kriraghor.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: web-tls
+      hosts: [kriraghor.com, www.kriraghor.com]

@@ -1,0 +1,34 @@
+# Shared non-secret config for every backend process (api, realtime, worker, migrate) in staging.
+# Loaded first; values/backend-<process>/staging.yaml adds process-specific settings.
+image:
+  repository: ghcr.io/kriraghor/kriraghor-backend
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+labels:
+  kriraghor.com/part-of: backend
+env:
+  NODE_ENV: production
+  LOG_LEVEL: info
+  PORT: "4000"
+  REALTIME_PORT: "4001"
+  OPS_PORT: "9464"
+  TRUST_PROXY: "2"
+  SHUTDOWN_DRAIN_MS: "5000"
+  DB_POOL_MAX: "5"
+  REDIS_KEY_PREFIX: kg
+  CORS_ORIGINS: "https://staging.kriraghor.com,https://www.staging.kriraghor.com,https://esports.staging.kriraghor.com,https://vendor.staging.kriraghor.com"
+  ADMIN_ORIGINS: "https://admin.staging.kriraghor.com"
+  COOKIE_PREFIX: kgstg
+  COOKIE_HINT_DOMAIN: ".staging.kriraghor.com"
+  COOKIE_SECURE: "true"
+  # DB_HOST, DB_USER, DB_PASSWORD and REDIS_URL (with its password) are in the secret.
+  DB_PORT: "3306"
+  DB_NAME: kriraghor
+  EMAIL_DRIVER: smtp
+  # Real SMS gateway driver arrives with M08; console until then (sandbox only).
+  SMS_DRIVER: console
+# Secret values (DB host and password, Redis URL, JWT, CSRF, OTP, encryption and S3 keys)
+# come from the cloud secret manager key "staging/backend" (ADR-003).
+externalSecret:
+  enabled: true
+  remoteKey: staging/backend

@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init
+data:
+  # Same as kriraghor-backend/docker/mysql-init: a test database for running the suite in-cluster if needed.
+  01-test-db.sql: |
+    CREATE DATABASE IF NOT EXISTS kriraghor_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+    GRANT ALL PRIVILEGES ON kriraghor_test.* TO '{{ .Values.mysql.user }}'@'%';
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  labels: { app: mysql }
+spec:
+  selector: { app: mysql }
+  ports:
+    - name: mysql
+      port: 3306
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  serviceName: mysql
+  replicas: 1
+  selector:
+    matchLabels: { app: mysql }
+  template:
+    metadata:
+      labels: { app: mysql }
+    spec:
+      containers:
+        - name: mysql
+          image: {{ .Values.mysql.image }}
+          args: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci", "--default-time-zone=+00:00"]
+          env:
+            - { name: TZ, value: UTC }
+            - { name: MYSQL_DATABASE, value: {{ .Values.mysql.database | quote }} }
+            - { name: MYSQL_USER, value: {{ .Values.mysql.user | quote }} }
+            - name: MYSQL_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.credentialsSecret }}, key: MYSQL_PASSWORD } }
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom: { secretKeyRef: { name: {{ .Values.credentialsSecret }}, key: MYSQL_ROOT_PASSWORD } }
+          ports:
+            - { name: mysql, containerPort: 3306 }
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$MYSQL_ROOT_PASSWORD\" --silent"]
+            periodSeconds: 5
+            failureThreshold: 30
+          resources:
+            {{- toYaml .Values.mysql.resources | nindent 12 }}
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/mysql }
+            - { name: init, mountPath: /docker-entrypoint-initdb.d, readOnly: true }
+      volumes:
+        - name: init
+          configMap: { name: mysql-init }
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: {{ .Values.mysql.storage }}

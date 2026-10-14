@@ -1,0 +1,34 @@
+# Socket.IO. Shares the api host; ingress-nginx merges this /socket.io path into it.
+# Websocket-first; the cookie affinity only matters for the long-polling fallback (ADR-003).
+nameOverride: backend-realtime
+command: ["node", "src/realtime.js"]
+containerPort: 4001
+opsPort: 9464
+
+replicaCount: 1
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+pdb:
+  enabled: false
+  minAvailable: 1
+terminationGracePeriodSeconds: 45
+resources:
+  requests: { cpu: 25m, memory: 128Mi }
+  limits: { memory: 320Mi }
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/session-cookie-name: kg_sio
+    nginx.ingress.kubernetes.io/session-cookie-path: /socket.io
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  hosts:
+    - host: api.kriraghor.localhost
+      paths:
+        - path: /socket.io
+          pathType: Prefix

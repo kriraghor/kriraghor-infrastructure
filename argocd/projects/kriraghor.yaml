@@ -1,0 +1,18 @@
+# One AppProject for every Kriraghor application. Destinations are limited to our namespaces.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: kriraghor
+  namespace: argocd
+spec:
+  description: Kriraghor platform
+  sourceRepos:
+    - https://github.com/kriraghor/kriraghor-infra.git
+  destinations:
+    - { server: https://kubernetes.default.svc, namespace: kriraghor }
+    - { server: https://kubernetes.default.svc, namespace: kriraghor-data }
+    - { server: https://kubernetes.default.svc, namespace: argocd }
+  clusterResourceWhitelist:
+    - { group: "", kind: Namespace }
+  namespaceResourceWhitelist:
+    - { group: "*", kind: "*" }

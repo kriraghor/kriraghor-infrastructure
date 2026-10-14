@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s3-config
+stringData:
+  # S3 identity for the dev cluster; matches S3_ACCESS_KEY / S3_SECRET_KEY in the backend Secret.
+  s3.json: |
+    {
+      "identities": [
+        {
+          "name": "kriraghor-dev",
+          "credentials": [{ "accessKey": "kriraghor", "secretKey": "kriraghor-dev-s3-secret" }],
+          "actions": ["Admin", "Read", "List", "Tagging", "Write"]
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s3
+  labels: { app: s3 }
+spec:
+  selector: { app: s3 }
+  ports:
+    - name: s3
+      port: 8333
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: s3
+spec:
+  serviceName: s3
+  replicas: 1
+  selector:
+    matchLabels: { app: s3 }
+  template:
+    metadata:
+      labels: { app: s3 }
+    spec:
+      containers:
+        - name: seaweedfs
+          image: {{ .Values.s3.image }}
+          args: ["server", "-dir=/data", "-s3", "-s3.port=8333", "-s3.config=/etc/seaweedfs/s3.json", "-master.volumeSizeLimitMB=128"]
+          ports:
+            - { name: s3, containerPort: 8333 }
+          readinessProbe:
+            tcpSocket: { port: s3 }
+            periodSeconds: 5
+            failureThreshold: 30
+          resources:
+            {{- toYaml .Values.s3.resources | nindent 12 }}
+          volumeMounts:
+            - { name: data, mountPath: /data }
+            - { name: config, mountPath: /etc/seaweedfs, readOnly: true }
+      volumes:
+        - name: config
+          secret: { secretName: s3-config }
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: {{ .Values.s3.storage }}

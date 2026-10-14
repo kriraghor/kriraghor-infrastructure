@@ -1,0 +1,54 @@
+# Next.js (output: 'standalone'). Public config is served at runtime from /env.js (ADR-003),
+# so the same image runs in every environment.
+nameOverride: esports
+image:
+  repository: k3d-registry.localhost:5111/kriraghor-esports
+  tag: "dev"
+  pullPolicy: Always
+containerPort: 3000
+opsPort: 0
+probes:
+  liveness: { path: /api/health, periodSeconds: 10, failureThreshold: 3 }
+  readiness: { path: /api/health, periodSeconds: 5, failureThreshold: 2 }
+  startup: { path: /api/health, periodSeconds: 3, failureThreshold: 40 }
+writableDirs:
+  - /tmp
+  - /app/.next/cache
+
+replicaCount: 1
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+pdb:
+  enabled: false
+  minAvailable: 1
+resources:
+  requests: { cpu: 25m, memory: 128Mi }
+  limits: { memory: 384Mi }
+env:
+  NODE_ENV: production
+  PORT: "3000"
+  HOSTNAME: 0.0.0.0
+  # Browser-facing (served through /env.js)
+  API_URL: http://api.kriraghor.localhost/api/v1
+  REALTIME_URL: http://api.kriraghor.localhost
+  WEB_URL: http://kriraghor.localhost
+  ESPORTS_URL: http://esports.kriraghor.localhost
+  ADMIN_URL: http://admin.kriraghor.localhost
+  VENDOR_URL: http://vendor.kriraghor.localhost
+  COOKIE_PREFIX: kg
+  GOOGLE_CLIENT_ID: ""
+  APP_ENV: dev
+  # Server-side only: server components call the API inside the cluster
+  INTERNAL_API_URL: http://backend-api.kriraghor.svc.cluster.local/api/v1
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: esports.kriraghor.localhost
+      paths:
+        - path: /
+          pathType: Prefix

@@ -1,0 +1,19 @@
+# App of apps for staging (ADR-003). Apply once per cluster:
+#   kubectl apply -n argocd -f argocd/projects/kriraghor.yaml -f argocd/envs/staging/root.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kriraghor-staging
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: kriraghor
+  source:
+    repoURL: https://github.com/kriraghor/kriraghor-infra.git
+    targetRevision: main
+    path: argocd/envs/staging/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }

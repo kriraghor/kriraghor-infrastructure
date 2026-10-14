@@ -1,0 +1,52 @@
+# Reusable CI for the Next.js apps (web, esports, portal):
+# lint → typecheck → unit tests → build → Playwright smoke → image build, Trivy, GHCR push, image-tag PR.
+name: nextjs-app
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: Image name under ghcr.io/kriraghor, e.g. kriraghor-web
+        type: string
+        required: true
+      values-files:
+        description: Space-separated values files in kriraghor-infra whose image.tag is bumped on main
+        type: string
+        required: true
+      node-version:
+        type: string
+        default: "24.16.0"
+    secrets:
+      INFRA_PR_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Playwright smoke
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+
+  image:
+    needs: test
+    uses: kriraghor/kriraghor-infra/.github/workflows/build-scan-push.yml@main
+    with:
+      image: ${{ inputs.image }}
+      values-files: ${{ inputs.values-files }}
+    secrets: inherit

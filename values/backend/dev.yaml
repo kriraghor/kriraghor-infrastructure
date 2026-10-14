@@ -1,0 +1,35 @@
+# Shared non-secret config for every backend process (api, realtime, worker, migrate) in dev.
+# Loaded first; values/backend-<process>/dev.yaml adds process-specific settings.
+image:
+  repository: k3d-registry.localhost:5111/kriraghor-backend
+  tag: "dev"
+  pullPolicy: Always
+labels:
+  kriraghor.com/part-of: backend
+env:
+  NODE_ENV: development
+  LOG_LEVEL: info
+  PORT: "4000"
+  REALTIME_PORT: "4001"
+  OPS_PORT: "9464"
+  TRUST_PROXY: "1"
+  SHUTDOWN_DRAIN_MS: "5000"
+  DB_POOL_MAX: "5"
+  REDIS_KEY_PREFIX: kg
+  CORS_ORIGINS: "http://kriraghor.localhost,http://*.kriraghor.localhost"
+  ADMIN_ORIGINS: "http://admin.kriraghor.localhost"
+  COOKIE_PREFIX: kg
+  COOKIE_HINT_DOMAIN: ".kriraghor.localhost"
+  COOKIE_SECURE: "false"
+  DB_HOST: mysql.kriraghor-data.svc.cluster.local
+  DB_PORT: "3306"
+  DB_NAME: kriraghor
+  DB_USER: kriraghor
+  REDIS_URL: redis://redis.kriraghor-data.svc.cluster.local:6379
+  EMAIL_DRIVER: smtp
+  SMTP_HOST: mailpit.kriraghor-data.svc.cluster.local
+  SMTP_PORT: "1025"
+  S3_ENDPOINT: http://s3.kriraghor-data.svc.cluster.local:8333
+  SMS_DRIVER: console
+# Dev: Secret created by local/secrets.sh (random values, never committed).
+envFromSecrets: [backend-secrets]
