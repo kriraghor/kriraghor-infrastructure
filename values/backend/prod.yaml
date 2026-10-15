@@ -18,6 +18,9 @@ env:
   REDIS_KEY_PREFIX: kg
   CORS_ORIGINS: "https://kriraghor.com,https://www.kriraghor.com,https://esports.kriraghor.com,https://vendor.kriraghor.com"
   ADMIN_ORIGINS: "https://admin.kriraghor.com"
+  # M08 links in notifications and emails.
+  WEB_APP_URL: https://kriraghor.com
+  ADMIN_APP_URL: https://admin.kriraghor.com
   COOKIE_PREFIX: kg
   S3_BUCKET_PRIVATE: kriraghor-prod-private
   COOKIE_HINT_DOMAIN: ".kriraghor.com"
@@ -26,7 +29,7 @@ env:
   DB_PORT: "3306"
   DB_NAME: kriraghor
   EMAIL_DRIVER: smtp
-  # Real SMS gateway driver arrives with M08; console until then (sandbox only).
+  # The real BD SMS gateway waits for Q59 (gateway + BTRC sender ID); console until then (sandbox only).
   SMS_DRIVER: console
 # Secret values (DB host and password, Redis URL, JWT, CSRF, OTP, encryption and S3 keys)
 # come from the cloud secret manager key "prod/backend" (ADR-003).

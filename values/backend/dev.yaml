@@ -18,6 +18,9 @@ env:
   REDIS_KEY_PREFIX: kg
   CORS_ORIGINS: "http://kriraghor.localhost,http://*.kriraghor.localhost"
   ADMIN_ORIGINS: "http://admin.kriraghor.localhost"
+  # M08 links in notifications and emails.
+  WEB_APP_URL: http://kriraghor.localhost
+  ADMIN_APP_URL: http://admin.kriraghor.localhost
   COOKIE_PREFIX: kg
   COOKIE_HINT_DOMAIN: ".kriraghor.localhost"
   COOKIE_SECURE: "false"
