@@ -72,6 +72,24 @@ export async function signUpByEmail(page: Page, helper: Page, site: string, name
   return { email, userId };
 }
 
+/** A fresh Grameenphone-style number for a test account (017 + 8 digits). */
+export const testPhone = () => `017${String(Date.now()).slice(-8)}`;
+
+/** Sign up on a customer site with a phone code (from the console SMS driver). Returns the new user's id. */
+export async function signUpByPhone(page: Page, site: string, phone: string, name: string): Promise<{ userId: string }> {
+  await page.goto(`${site}/sign-in`);
+  await page.getByRole("tab", { name: "Phone code" }).click();
+  await page.getByLabel("Mobile number").fill(phone);
+  await page.getByRole("button", { name: "Send code" }).click();
+  await expect(page.getByLabel("6-digit code")).toBeVisible();
+  await page.getByLabel("6-digit code").fill(smsCode(phone));
+  await page.getByRole("button", { name: "Verify and continue" }).click();
+  await page.getByLabel("Your name").fill(name);
+  await page.getByRole("button", { name: "Create my account" }).click();
+  await expect(page).toHaveURL(`${site}/me`);
+  return { userId: ((await page.getByTestId("me-id").textContent()) ?? "").trim() };
+}
+
 /**
  * The master's admin access token through the API (login code by SMS, then TOTP), for driving desk
  * endpoints from a test. Waits out the one-code-per-minute cooldown if a previous test just signed in.
