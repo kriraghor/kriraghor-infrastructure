@@ -31,7 +31,7 @@ env:
   COOKIE_HINT_DOMAIN: ".staging.kriraghor.com"
   COOKIE_SECURE: "true"
   # DB_HOST, DB_USER, DB_PASSWORD and REDIS_URL (with its password) are in the secret.
-  DB_PORT: "3306"
+  DB_PORT: "5432"
   DB_NAME: kriraghor
   EMAIL_DRIVER: smtp
   # The real BD SMS gateway waits for Q59 (gateway + BTRC sender ID); console until then (sandbox only).

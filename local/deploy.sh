@@ -24,7 +24,7 @@ image_exists() {
 }
 
 if want dev-data; then
-  log "dev-data (MySQL, Redis, S3, Mailpit)"
+  log "dev-data (PostgreSQL, Redis, S3, Mailpit)"
   hl upgrade --install dev-data "${INFRA_DIR}/charts/dev-data" --namespace "$DATA_NS" --wait --timeout 8m
 fi
 

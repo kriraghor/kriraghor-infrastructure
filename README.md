@@ -13,7 +13,7 @@
 charts/
 ├─ kriraghor-app/        One chart for every workload: Deployment or hook Job, Service, Ingress, HPA, PDB,
 │                        NetworkPolicy, ServiceAccount, ExternalSecret, probes, non-root, read-only root fs
-└─ dev-data/             DEV ONLY: MySQL 8.4, Redis 7.4, SeaweedFS (S3), Mailpit
+└─ dev-data/             DEV ONLY: PostgreSQL 17, Redis 7.4, SeaweedFS (S3), Mailpit
 values/
 ├─ backend/<env>.yaml    Shared backend config (loaded first for every backend release)
 ├─ backend-api|backend-realtime|backend-worker|backend-migrate/<env>.yaml
@@ -38,7 +38,7 @@ local/                   k3d scripts (bash; Git Bash on Windows)
 | `web` | `kriraghor-web` | `kriraghor.localhost` | `kriraghor.com` (+ `www` redirect) |
 | `esports` | `kriraghor-esports` | `esports.kriraghor.localhost` | `esports.kriraghor.com` |
 | `portal` | `kriraghor-portal` | `admin.` and `vendor.kriraghor.localhost` | `admin.` and `vendor.kriraghor.com` |
-| `dev-data` (dev only) | MySQL, Redis, SeaweedFS, Mailpit | `mail.kriraghor.localhost` (Mailpit UI) | managed services outside the cluster |
+| `dev-data` (dev only) | PostgreSQL, Redis, SeaweedFS, Mailpit | `mail.kriraghor.localhost` (Mailpit UI) | managed services outside the cluster |
 
 All images are distroless (Node is the entrypoint, no shell), so values pass the script as `args`, never `command`.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Create the dev Secrets with random values (never committed). Idempotent: existing Secrets are kept,
-# so data in the dev MySQL stays readable. Pass --force to regenerate (then reset dev-data too).
+# so data in the dev PostgreSQL stays readable. Pass --force to regenerate (then reset dev-data too).
 # Staging and prod never use this: their secrets come from External Secrets (ADR-003).
 source "$(dirname "$0")/lib.sh"
 need kubectl node
@@ -13,12 +13,18 @@ exists() { kc -n "$1" get secret "$2" >/dev/null 2>&1; }
 
 if exists "$DATA_NS" dev-data-credentials && [ "$FORCE" != "--force" ]; then
   log "dev-data-credentials exists (use --force to regenerate)"
-  MYSQL_PASSWORD="$(kc -n "$DATA_NS" get secret dev-data-credentials -o jsonpath='{.data.MYSQL_PASSWORD}' | base64 -d)"
+  DB_PASSWORD="$(kc -n "$DATA_NS" get secret dev-data-credentials -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 -d)"
+  if [ -z "$DB_PASSWORD" ]; then
+    # Clusters created before ADR-005 (MySQL): keep the same password under the PostgreSQL key.
+    DB_PASSWORD="$(kc -n "$DATA_NS" get secret dev-data-credentials -o jsonpath='{.data.MYSQL_PASSWORD}' | base64 -d)"
+    kc -n "$DATA_NS" create secret generic dev-data-credentials --from-literal=POSTGRES_PASSWORD="$DB_PASSWORD" \
+      --dry-run=client -o yaml | kc apply -f - >/dev/null
+    log "dev-data-credentials moved to POSTGRES_PASSWORD"
+  fi
 else
-  MYSQL_PASSWORD="$(rand 18)"
+  DB_PASSWORD="$(rand 18)"
   kc -n "$DATA_NS" create secret generic dev-data-credentials \
-    --from-literal=MYSQL_PASSWORD="$MYSQL_PASSWORD" \
-    --from-literal=MYSQL_ROOT_PASSWORD="$(rand 18)" \
+    --from-literal=POSTGRES_PASSWORD="$DB_PASSWORD" \
     --dry-run=client -o yaml | kc apply -f - >/dev/null
   log "dev-data-credentials written"
 fi
@@ -27,7 +33,7 @@ if exists "$NS" backend-secrets && [ "$FORCE" != "--force" ]; then
   log "backend-secrets exists (use --force to regenerate)"
 else
   kc -n "$NS" create secret generic backend-secrets \
-    --from-literal=DB_PASSWORD="$MYSQL_PASSWORD" \
+    --from-literal=DB_PASSWORD="$DB_PASSWORD" \
     --from-literal=JWT_ACCESS_SECRET="$(rand)" \
     --from-literal=JWT_SPECIAL_SECRET="$(rand)" \
     --from-literal=CSRF_SECRET="$(rand)" \

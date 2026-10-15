@@ -1,5 +1,5 @@
 # Reusable CI for kriraghor-backend (ADR-003):
-# lint → test (MySQL + Redis services) → OpenAPI check → build → Trivy → push to GHCR → image-tag PR in kriraghor-infra.
+# lint → test (PostgreSQL + Redis services) → OpenAPI check → build → Trivy → push to GHCR → image-tag PR in kriraghor-infra.
 # Called from the backend repo; see .github/workflow-templates/backend-ci.yml.
 # Third-party actions are pinned to commit SHAs (version in the comment); Dependabot keeps them current.
 name: node-service
@@ -31,16 +31,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     services:
-      mysql:
-        image: mysql:8.4
+      postgres:
+        image: postgres:17.11-alpine
         env:
-          MYSQL_DATABASE: kriraghor
-          MYSQL_USER: kriraghor
-          MYSQL_PASSWORD: kriraghor
-          MYSQL_ROOT_PASSWORD: root
-        ports: ["3306:3306"]
+          POSTGRES_DB: kriraghor
+          POSTGRES_USER: kriraghor
+          POSTGRES_PASSWORD: kriraghor
+        ports: ["5432:5432"]
         options: >-
-          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-cmd "pg_isready -U kriraghor -d kriraghor"
           --health-interval 5s --health-retries 30
       redis:
         image: redis:7.4-alpine
@@ -48,6 +47,7 @@ jobs:
         options: --health-cmd "redis-cli ping" --health-interval 5s --health-retries 30
     env:
       DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
       DB_PASSWORD: kriraghor
       REDIS_URL: redis://127.0.0.1:6379
       JWT_ACCESS_SECRET: ci-access-secret-0123456789abcdefghijkl
@@ -62,9 +62,8 @@ jobs:
           node-version: ${{ inputs.node-version }}
           cache: npm
       - name: Test database
-        run: |
-          mysql -h 127.0.0.1 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS kriraghor_test CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci; GRANT ALL ON kriraghor_test.* TO 'kriraghor'@'%'; SET PERSIST log_bin_trust_function_creators = 1;"
-          # ^ M03 migrations create append-only triggers as the app user; service containers cannot take server args.
+        # Service containers cannot mount init scripts, so the test database is created here.
+        run: PGPASSWORD=kriraghor createdb -h 127.0.0.1 -U kriraghor kriraghor_test
       - run: npm ci
       - run: npm run lint
       - run: npm test

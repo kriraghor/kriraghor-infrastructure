@@ -1,8 +1,8 @@
 apiVersion: v2
 name: dev-data
 description: >-
-  DEV ONLY. MySQL 8.4, Redis 7.4, SeaweedFS (S3) and Mailpit inside the cluster for k3d.
-  Staging and prod use managed MySQL and Redis outside the cluster and R2 or S3 (ADR-003).
+  DEV ONLY. PostgreSQL 17, Redis 7.4, SeaweedFS (S3) and Mailpit inside the cluster for k3d.
+  Staging and prod use managed PostgreSQL and Redis outside the cluster and R2 or S3 (ADR-003, ADR-005).
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "dev"

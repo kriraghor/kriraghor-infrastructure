@@ -1,6 +1,6 @@
 {{- if and .Values.networkPolicy.enabled (eq .Values.kind "Deployment") }}
 # Ingress allowlist: the ingress controller (main port), Prometheus (ops port) and, optionally,
-# pods in the same namespace. Egress stays open: the managed MySQL and Redis live outside the cluster.
+# pods in the same namespace. Egress stays open: the managed PostgreSQL and Redis live outside the cluster.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

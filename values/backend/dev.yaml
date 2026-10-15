@@ -29,8 +29,8 @@ env:
   COOKIE_PREFIX: kg
   COOKIE_HINT_DOMAIN: ".kriraghor.localhost"
   COOKIE_SECURE: "false"
-  DB_HOST: mysql.kriraghor-data.svc.cluster.local
-  DB_PORT: "3306"
+  DB_HOST: postgres.kriraghor-data.svc.cluster.local
+  DB_PORT: "5432"
   DB_NAME: kriraghor
   DB_USER: kriraghor
   REDIS_URL: redis://redis.kriraghor-data.svc.cluster.local:6379
