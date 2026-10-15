@@ -1,8 +1,7 @@
-import { execSync } from "node:child_process";
 import fs from "node:fs";
-import path from "node:path";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import { authenticator } from "otplib";
+import { ADMIN, D, ESPORTS, MASTER_PHONE, STATE_FILE, VENDOR, WEB, emailCode, smsCode } from "./helpers";
 
 /**
  * 0B exit check (build prompt, Part 4): the whole stack runs in k3d and SSO works across subdomains.
@@ -12,44 +11,6 @@ import { authenticator } from "otplib";
  *  4. admin.kriraghor.localhost requires the staff sign-in, including TOTP, and gives an admin session.
  *  5. Each portal host serves only its own area.
  */
-const D = "kriraghor.localhost";
-const WEB = `http://${D}`;
-const ESPORTS = `http://esports.${D}`;
-const ADMIN = `http://admin.${D}`;
-const VENDOR = `http://vendor.${D}`;
-const MAIL = `http://mail.${D}`;
-const CONTEXT = process.env.KUBE_CONTEXT ?? "k3d-kriraghor";
-const MASTER_PHONE = process.env.MASTER_PHONE ?? "01711000001";
-const STATE_FILE = path.join(__dirname, ".state.json"); // remembers the master's TOTP secret between runs (gitignored)
-
-/** Latest 6-digit code emailed to `to`, read from the Mailpit API through the browser (it resolves *.localhost). */
-async function emailCode(page: Page, to: string): Promise<string> {
-  for (let i = 0; i < 20; i++) {
-    await page.goto(`${MAIL}/api/v1/search?query=${encodeURIComponent(`to:"${to}"`)}`);
-    const list = JSON.parse((await page.textContent("body")) ?? "{}") as { messages?: { ID: string }[] };
-    if (list.messages?.length) {
-      await page.goto(`${MAIL}/api/v1/message/${list.messages[0].ID}`);
-      const msg = JSON.parse((await page.textContent("body")) ?? "{}") as { Text?: string };
-      const code = msg.Text?.match(/\b(\d{6})\b/)?.[1];
-      if (code) return code;
-    }
-    await page.waitForTimeout(500);
-  }
-  throw new Error(`no email code for ${to}`);
-}
-
-/** Latest SMS code for a number from the API pod's console SMS driver (dev only). */
-function smsCode(local: string): string {
-  const e164 = `+880${local.slice(1)}`;
-  for (let i = 0; i < 20; i++) {
-    const logs = execSync(`kubectl --context ${CONTEXT} -n kriraghor logs deploy/backend-api --since=5m`, { encoding: "utf8" });
-    const blocks = logs.split("[sms:console]").filter((b) => b.includes(`to=${e164}`));
-    const code = blocks.at(-1)?.match(/\b(\d{6})\b/)?.[1];
-    if (code) return code;
-    execSync(process.platform === "win32" ? "ping -n 2 127.0.0.1 >NUL" : "sleep 1");
-  }
-  throw new Error(`no SMS code for ${local}`);
-}
 
 test("SSO across subdomains: sign up on esports, same session on kriraghor.com", async ({ browser }) => {
   const context = await browser.newContext();
