@@ -19,6 +19,7 @@ env:
   CORS_ORIGINS: "https://kriraghor.com,https://www.kriraghor.com,https://esports.kriraghor.com,https://vendor.kriraghor.com"
   ADMIN_ORIGINS: "https://admin.kriraghor.com"
   COOKIE_PREFIX: kg
+  S3_BUCKET_PRIVATE: kriraghor-prod-private
   COOKIE_HINT_DOMAIN: ".kriraghor.com"
   COOKIE_SECURE: "true"
   # DB_HOST, DB_USER, DB_PASSWORD and REDIS_URL (with its password) are in the secret.

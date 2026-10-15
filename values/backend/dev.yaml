@@ -30,6 +30,9 @@ env:
   SMTP_HOST: mailpit.kriraghor-data.svc.cluster.local
   SMTP_PORT: "1025"
   S3_ENDPOINT: http://s3.kriraghor-data.svc.cluster.local:8333
+  # M04 audit exports (and M02 KYC files later). The bucket is created on first use in dev only.
+  S3_BUCKET_PRIVATE: kriraghor-private
+  S3_CREATE_BUCKETS: "true"
   SMS_DRIVER: console
 # Dev: Secret created by local/secrets.sh (random values, never committed).
 envFromSecrets: [backend-secrets]

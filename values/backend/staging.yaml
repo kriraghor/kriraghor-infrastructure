@@ -19,6 +19,7 @@ env:
   CORS_ORIGINS: "https://staging.kriraghor.com,https://www.staging.kriraghor.com,https://esports.staging.kriraghor.com,https://vendor.staging.kriraghor.com"
   ADMIN_ORIGINS: "https://admin.staging.kriraghor.com"
   COOKIE_PREFIX: kgstg
+  S3_BUCKET_PRIVATE: kriraghor-staging-private
   COOKIE_HINT_DOMAIN: ".staging.kriraghor.com"
   COOKIE_SECURE: "true"
   # DB_HOST, DB_USER, DB_PASSWORD and REDIS_URL (with its password) are in the secret.
