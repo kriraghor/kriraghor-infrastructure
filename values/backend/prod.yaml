@@ -21,12 +21,16 @@ env:
   # M08 links in notifications and emails.
   WEB_APP_URL: https://kriraghor.com
   ESPORTS_APP_URL: https://esports.kriraghor.com
+  VENDOR_APP_URL: https://vendor.kriraghor.com/vendor
   ADMIN_APP_URL: https://admin.kriraghor.com
   # M06 payments: live SSLCommerz (store credentials in the secret). No simulator, no test charges.
   API_PUBLIC_URL: https://api.kriraghor.com
   SSLCOMMERZ_BASE_URL: https://securepay.sslcommerz.com
   COOKIE_PREFIX: kg
   S3_BUCKET_PRIVATE: kriraghor-prod-private
+  # M09 ground photos: a public bucket read anonymously (R2 or S3 with a CDN in staging and prod).
+  S3_BUCKET_PUBLIC: kriraghor-prod-public
+  PUBLIC_ASSET_BASE_URL: https://assets.kriraghor.com
   COOKIE_HINT_DOMAIN: ".kriraghor.com"
   COOKIE_SECURE: "true"
   # DB_HOST, DB_USER, DB_PASSWORD and REDIS_URL (with its password) are in the secret.

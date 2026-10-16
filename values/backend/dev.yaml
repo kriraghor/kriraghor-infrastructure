@@ -21,6 +21,7 @@ env:
   # M08 links in notifications and emails.
   WEB_APP_URL: http://kriraghor.localhost
   ESPORTS_APP_URL: http://esports.kriraghor.localhost
+  VENDOR_APP_URL: http://vendor.kriraghor.localhost/vendor
   ADMIN_APP_URL: http://admin.kriraghor.localhost
   # M06 payments: the gateway posts IPNs and returns to this origin. The SSLCommerz simulator plays the
   # gateway in dev (never in production; config refuses it), and masters can create test charges.
@@ -41,6 +42,9 @@ env:
   S3_ENDPOINT: http://s3.kriraghor-data.svc.cluster.local:8333
   # M04 audit exports (and M02 KYC files later). The bucket is created on first use in dev only.
   S3_BUCKET_PRIVATE: kriraghor-private
+  # M09 ground photos: a public bucket read anonymously (R2 or S3 with a CDN in staging and prod).
+  S3_BUCKET_PUBLIC: kriraghor-public
+  PUBLIC_ASSET_BASE_URL: http://assets.kriraghor.localhost/kriraghor-public
   S3_CREATE_BUCKETS: "true"
   SMS_DRIVER: console
 # Dev: Secret created by local/secrets.sh (random values, never committed).

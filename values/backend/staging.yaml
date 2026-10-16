@@ -21,6 +21,7 @@ env:
   # M08 links in notifications and emails.
   WEB_APP_URL: https://staging.kriraghor.com
   ESPORTS_APP_URL: https://esports.staging.kriraghor.com
+  VENDOR_APP_URL: https://vendor.staging.kriraghor.com/vendor
   ADMIN_APP_URL: https://admin.staging.kriraghor.com
   # M06 payments: SSLCommerz sandbox. SSLCOMMERZ_STORE_ID and SSLCOMMERZ_STORE_PASSWORD come from the
   # secret; until they exist, payment attempts answer PROVIDER_UNAVAILABLE. Test charges allowed.
@@ -29,6 +30,9 @@ env:
   PAYMENTS_TEST_CHARGES: "true"
   COOKIE_PREFIX: kgstg
   S3_BUCKET_PRIVATE: kriraghor-staging-private
+  # M09 ground photos: a public bucket read anonymously (R2 or S3 with a CDN in staging and prod).
+  S3_BUCKET_PUBLIC: kriraghor-staging-public
+  PUBLIC_ASSET_BASE_URL: https://assets.staging.kriraghor.com
   COOKIE_HINT_DOMAIN: ".staging.kriraghor.com"
   COOKIE_SECURE: "true"
   # DB_HOST, DB_USER, DB_PASSWORD and REDIS_URL (with its password) are in the secret.

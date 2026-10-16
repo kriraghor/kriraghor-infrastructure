@@ -76,6 +76,7 @@ Run the end-to-end checks:
 - `stack.spec.ts`: SSO across subdomains, staff TOTP, host routing.
 - `pay.spec.ts`, `payout.spec.ts`, `kyc.spec.ts`: money in, money out, NID review.
 - `esports.spec.ts`: the M21 player loop. It runs from UID review to paid entries, check-in, the room reveal, results, finalise and winnings, in about 10 minutes. It moves the stored times in the in-cluster dev database and waits for the minute tick.
+- `grounds.spec.ts`: M09. A member verifies the NID and sends ground-owner documents, lists a ground on vendor.kriraghor.com with a court and photos (from the public bucket at assets.kriraghor.localhost), it is approved and live on /grounds, and new prices change the public quote.
 
 ```bash
 cd local/e2e && npm install && npx playwright install chromium && npx playwright test

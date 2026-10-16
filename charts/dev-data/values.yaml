@@ -19,6 +19,8 @@ redis:
 s3:
   image: chrislusf/seaweedfs:4.01
   storage: 1Gi
+  # Public objects (ground photos) at http://assets.kriraghor.localhost/kriraghor-public/<key>
+  assetsHost: assets.kriraghor.localhost
   resources:
     requests: { cpu: 50m, memory: 96Mi }
     limits: { memory: 384Mi }
