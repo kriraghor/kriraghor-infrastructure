@@ -5,7 +5,8 @@ import { ADMIN, API, WEB, masterToken, signUpByPhone, testPhone } from "./helper
  * M02 in k3d: "A KYC document is approved" (the last part of the Phase 2 exit check).
  *  1. A member signs up by phone and opens /account/verification: "Verification needed".
  *  2. They fill the NID form (legal name, number, date of birth, front, back, selfie) and send it: "In review".
- *  3. The master finds it on the KYC queue (API), views a file (audited) and approves it with the full rubric.
+ *  3. The master claims it on the M05 Moderation desk (API), views a file on the document panel
+ *     (audited), ticks the rubric and approves it; M02 applies the decision.
  *  4. The member's page shows "Fully verified", and their account page says "Identity verified".
  */
 const JPEG = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.from(`e2e-${Date.now()}`)]);
@@ -37,24 +38,34 @@ test("a member verifies their NID and staff approve it", async ({ browser, reque
   await expect(page.getByTestId("kyc-items")).toContainText(`•••• ${nid.slice(-4)}`);
   await expect(page.getByText(nid)).toHaveCount(0);
 
-  // Staff review on the KYC desk (API with the master's admin session).
+  // Staff review on the M05 Moderation desk (API with the master's admin session): claim, tick, decide.
   const token = await masterToken(request, page);
   const admin = { Authorization: `Bearer ${token}`, Origin: ADMIN };
-  const queue = await (await request.get(`${API}/admin/kyc/documents?status=in_review`, { headers: admin })).json();
-  const doc = queue.items.find((d: { user: { id: string } }) => d.user.id === userId);
-  expect(doc).toMatchObject({ numberMasked: `•••• ${nid.slice(-4)}`, failedChecks: [] });
+  const queue = await (await request.get(`${API}/admin/submissions?kind=document`, { headers: admin })).json();
+  const item = queue.items.find((s: { submittedBy: { id: string } }) => s.submittedBy.id === userId);
+  expect(item).toMatchObject({ kind: "document", status: "pending_review", sla: "ok" });
   expect(JSON.stringify(queue)).not.toContain(nid);
-  const detail = await (await request.get(`${API}/admin/kyc/documents/${doc.id}`, { headers: admin })).json();
+  const claimed = await request.post(`${API}/admin/submissions/${item.id}/claim`, { headers: admin });
+  expect(claimed.status()).toBe(200);
+  const sub = await claimed.json();
+  expect(sub.payload).toMatchObject({ numberMasked: `•••• ${nid.slice(-4)}` });
+  expect(sub.checks.filter((c: { result: string }) => c.result === "fail")).toEqual([]);
+  // The document panel (M02): legal name and DOB, and one audited file view.
+  const documentId = sub.payload.documentId;
+  const detail = await (await request.get(`${API}/admin/kyc/documents/${documentId}`, { headers: admin })).json();
   expect(detail.fields).toMatchObject({ legalName: "E2E Verified Member", dob: "1990-05-14" });
   const front = detail.files.find((f: { slot: string }) => f.slot === "front");
-  const file = await request.get(`${API}/admin/kyc/documents/${doc.id}/files/${front.id}`, { headers: admin });
+  const file = await request.get(`${API}/admin/kyc/documents/${documentId}/files/${front.id}`, { headers: admin });
   expect(file.status()).toBe(200);
   expect(file.headers()["cache-control"]).toBe("no-store");
-  const decided = await request.post(`${API}/admin/kyc/documents/${doc.id}/decide`, {
-    headers: admin,
-    data: { decision: "approve", rubric: { nameMatches: true, readable: true, notExpired: true } },
+  const ticks = await request.put(`${API}/admin/submissions/${item.id}/ticks`, { headers: admin, data: { ticks: sub.rubric.items.map((i: { key: string }) => i.key) } });
+  expect((await ticks.json()).missing).toEqual([]);
+  const decided = await request.post(`${API}/admin/submissions/${item.id}/decide`, {
+    headers: { ...admin, "Idempotency-Key": `e2e-${Date.now()}` },
+    data: { decision: "approve" },
   });
   expect(decided.status()).toBe(200);
+  expect((await decided.json()).status).toBe("approved");
 
   // The worker moves the member role (M01 consumer); the page follows.
   await expect(async () => {
