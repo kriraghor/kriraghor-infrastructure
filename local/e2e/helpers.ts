@@ -1,8 +1,32 @@
 import { execSync } from "node:child_process";
+import dns from "node:dns";
 import fs from "node:fs";
 import path from "node:path";
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 import { authenticator } from "otplib";
+
+// *.localhost always means this machine (RFC 6761). Browsers know that; some Windows resolvers do not,
+// so API calls from the test process (APIRequestContext) resolve these names locally. Test process only.
+type LookupCallback = (err: NodeJS.ErrnoException | null, address: string | dns.LookupAddress[], family?: number) => void;
+const systemLookup = dns.lookup;
+(dns as unknown as { lookup: unknown }).lookup = (hostname: string, options: unknown, callback?: LookupCallback) => {
+  const cb = (typeof options === "function" ? options : callback) as LookupCallback;
+  const opts = (typeof options === "object" && options) || {};
+  if (hostname === "localhost" || hostname.endsWith(".localhost")) {
+    if ((opts as dns.LookupOptions).all) return process.nextTick(() => cb(null, [{ address: "127.0.0.1", family: 4 }]));
+    return process.nextTick(() => cb(null, "127.0.0.1", 4));
+  }
+  return (systemLookup as (...args: unknown[]) => void)(hostname, options, callback);
+};
+// Playwright's API client resolves through dns.promises.lookup.
+const systemPromisesLookup = dns.promises.lookup;
+(dns.promises as unknown as { lookup: unknown }).lookup = async (hostname: string, options?: dns.LookupOptions) => {
+  if (hostname === "localhost" || hostname.endsWith(".localhost")) {
+    if (options?.family === 6) return options.all ? [] : { address: "::1", family: 6 };
+    return options?.all ? [{ address: "127.0.0.1", family: 4 }] : { address: "127.0.0.1", family: 4 };
+  }
+  return systemPromisesLookup(hostname, options as dns.LookupOptions);
+};
 
 /** Shared helpers for the k3d end-to-end checks (local dev cluster only; codes come from dev drivers). */
 export const D = "kriraghor.localhost";

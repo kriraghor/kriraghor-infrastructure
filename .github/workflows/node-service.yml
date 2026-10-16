@@ -54,6 +54,7 @@ jobs:
       JWT_SPECIAL_SECRET: ci-special-secret-0123456789abcdefghijk
       CSRF_SECRET: ci-csrf-secret-0123456789abcdefghijklmnop
       OTP_HASH_SECRET: ci-otp-hash-secret-0123
+      NID_HMAC_SECRET: ci-nid-hmac-secret-0123
       DATA_ENCRYPTION_KEY: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
