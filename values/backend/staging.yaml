@@ -20,6 +20,7 @@ env:
   ADMIN_ORIGINS: "https://admin.staging.kriraghor.com"
   # M08 links in notifications and emails.
   WEB_APP_URL: https://staging.kriraghor.com
+  ESPORTS_APP_URL: https://esports.staging.kriraghor.com
   ADMIN_APP_URL: https://admin.staging.kriraghor.com
   # M06 payments: SSLCommerz sandbox. SSLCOMMERZ_STORE_ID and SSLCOMMERZ_STORE_PASSWORD come from the
   # secret; until they exist, payment attempts answer PROVIDER_UNAVAILABLE. Test charges allowed.

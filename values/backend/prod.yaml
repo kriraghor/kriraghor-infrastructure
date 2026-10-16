@@ -20,6 +20,7 @@ env:
   ADMIN_ORIGINS: "https://admin.kriraghor.com"
   # M08 links in notifications and emails.
   WEB_APP_URL: https://kriraghor.com
+  ESPORTS_APP_URL: https://esports.kriraghor.com
   ADMIN_APP_URL: https://admin.kriraghor.com
   # M06 payments: live SSLCommerz (store credentials in the secret). No simulator, no test charges.
   API_PUBLIC_URL: https://api.kriraghor.com

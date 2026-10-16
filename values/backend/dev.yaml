@@ -20,6 +20,7 @@ env:
   ADMIN_ORIGINS: "http://admin.kriraghor.localhost"
   # M08 links in notifications and emails.
   WEB_APP_URL: http://kriraghor.localhost
+  ESPORTS_APP_URL: http://esports.kriraghor.localhost
   ADMIN_APP_URL: http://admin.kriraghor.localhost
   # M06 payments: the gateway posts IPNs and returns to this origin. The SSLCommerz simulator plays the
   # gateway in dev (never in production; config refuses it), and masters can create test charges.
