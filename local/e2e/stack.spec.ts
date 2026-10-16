@@ -57,6 +57,8 @@ test("SSO across subdomains: sign up on esports, same session on kriraghor.com",
 });
 
 test("admin portal requires staff sign-in with TOTP and gives an admin session", async ({ browser }) => {
+  // Room to wait out the login-code cooldown, which grows after many master sign-ins in one session.
+  test.setTimeout(6 * 60_000);
   const context = await browser.newContext();
   const page = await context.newPage();
 
