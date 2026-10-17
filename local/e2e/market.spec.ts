@@ -148,7 +148,7 @@ test("a member becomes a shop owner, lists boots in sizes, and buyers see the so
   await row.getByTestId("set-count").click();
   await owner.getByTestId("set-to").fill("0");
   await owner.getByTestId("save-count").click();
-  await expect(owner.getByTestId("inventory-row").filter({ hasText: "EU 44" })).toContainText("Out of stock");
+  await expect(owner.getByTestId("inventory-row").filter({ hasText: "EU 44" })).toContainText("Out, hidden from Market");
   await expect(owner.getByTestId("inventory-kpis")).toContainText("৳52,000");
   await shot(owner, "inventory");
 
