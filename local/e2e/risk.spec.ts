@@ -48,6 +48,8 @@ async function adminSignIn(admin: Page) {
   if (!fs.existsSync(STATE_FILE)) throw new Error("run stack.spec.ts first: the master's authenticator is enrolled there");
   await admin.getByLabel("Authenticator code").fill(await masterTotp(admin));
   await admin.getByRole("button", { name: "Confirm" }).click();
+  // Wait for the admin session before moving on (navigating away early leaves the desk signed out).
+  await expect(admin.getByRole("button", { name: "Sign out" })).toBeVisible({ timeout: 15_000 });
 }
 
 test("two accounts on one NID: a critical flag; the master freezes payouts with a code and undoes it", async ({ browser }) => {
@@ -68,8 +70,10 @@ test("two accounts on one NID: a critical flag; the master freezes payouts with 
   expect(sql(`SELECT COUNT(*) FROM payout_holds WHERE payee_id = '${userId}'`)).toBe("0");
 
   await adminSignIn(admin);
-  await admin.goto(`${ADMIN}/admin/risk`);
-  await expect(admin.getByTestId("risk-flags")).toContainText("E2E Risk Second");
+  await expect(async () => {
+    await admin.goto(`${ADMIN}/admin/risk`);
+    await expect(admin.getByTestId("risk-flags")).toContainText("E2E Risk Second", { timeout: 5_000 });
+  }).toPass({ timeout: 60_000 });
   await expect(admin.getByTestId("risk-flags")).toContainText("Same NID on several accounts");
   await expect(admin.getByText(nid)).toHaveCount(0);
   await shot(admin, "desk");
