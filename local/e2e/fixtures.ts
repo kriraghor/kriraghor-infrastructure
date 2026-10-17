@@ -58,3 +58,34 @@ export function startNow(bookingId: string) {
   sql(`UPDATE bookings SET start_at = date_trunc('hour', now()), end_at = date_trunc('hour', now()) + interval '1 hour' WHERE id = '${bookingId}';
        UPDATE booking_slots SET period = tstzrange(date_trunc('hour', now()), date_trunc('hour', now()) + interval '1 hour', '[)') WHERE booking_id = '${bookingId}' AND status = 'active';`);
 }
+
+/**
+ * M13: the member's shop_owner role and a live sports gear shop in Dhanmondi with turf boots at
+ * ৳6,500 in EU 42 (5 in stock, opened on the stock ledger), written straight into the database (the
+ * M12 spec covers the real listing and review flow). Dev database only.
+ */
+export function liveShopWithBoots(ownerId: string, run: string) {
+  const shop = randomUUID();
+  const product = randomUUID();
+  const variant = randomUUID();
+  const slug = `e2e-boots-${run}`;
+  const area = "(SELECT id FROM areas WHERE key = 'dhanmondi')";
+  const type = "(SELECT id FROM item_types WHERE key = 'football_boots')";
+  sql(`
+    UPDATE user_roles SET status = 'active', activated_at = now() WHERE user_id = '${ownerId}' AND role = 'member';
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) SELECT gen_random_uuid(), '${ownerId}', 'member', 'active', now() WHERE NOT EXISTS (SELECT 1 FROM user_roles WHERE user_id = '${ownerId}' AND role = 'member');
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) VALUES (gen_random_uuid(), '${ownerId}', 'shop_owner', 'active', now());
+    UPDATE users SET kyc_status = 'verified', authz_version = authz_version + 1 WHERE id = '${ownerId}';
+    INSERT INTO shops (id, owner_id, shop_type, name, slug, area_id, address_line, status, live_version, first_live_at, low_stock_threshold, auto_hide_out_of_stock, mto_days_default, live_snapshot)
+      VALUES ('${shop}', '${ownerId}', 'sports_gear', 'E2E Boot Room ${run}', 'e2e-boot-room-${run}', ${area}, '12 Elephant Road, Dhaka', 'live', 1, now(), 3, true, 5,
+        jsonb_build_object('version', 1, 'name', 'E2E Boot Room ${run}', 'shopType', 'sports_gear', 'areaId', ${area}, 'addressLine', '12 Elephant Road, Dhaka', 'lat', null, 'lng', null, 'about', null));
+    INSERT INTO products (id, shop_id, item_type_id, title, slug, specs, base_price_poisha, max_qty_per_order, status, live_version, first_live_at, visibility, public_title, public_item_type_id, public_price_from_poisha, public_price_to_poisha, live_snapshot)
+      VALUES ('${product}', '${shop}', ${type}, 'E2E Turf Boots ${run}', '${slug}', '{"stud_type":"tf"}', 650000, 10, 'live', 1, now(), 'visible', 'E2E Turf Boots ${run}', ${type}, 650000, 650000,
+        jsonb_build_object('version', 1, 'title', 'E2E Turf Boots ${run}', 'itemTypeId', ${type}, 'brand', null, 'description', null, 'specs', '{"stud_type":"tf"}'::jsonb, 'isMto', false, 'mtoDays', null,
+          'maxQtyPerOrder', 10, 'importer', null, 'bstiRegNo', null, 'basePricePoisha', 650000, 'photos', '[]'::jsonb,
+          'variants', jsonb_build_array(jsonb_build_object('id', '${variant}', 'attributes', '{"eu_size":"42"}'::jsonb, 'sku', null, 'pricePoisha', 650000, 'expiryDate', null, 'batchNo', null, 'sort', 0))));
+    INSERT INTO product_variants (id, product_id, shop_id, attributes, on_hand, held, status, sort) VALUES ('${variant}', '${product}', '${shop}', '{"eu_size":"42"}', 5, 0, 'active', 0);
+    INSERT INTO inventory_movements (id, variant_id, type, delta_on_hand, delta_held, on_hand_after, held_after, reason_code, ref_type) VALUES (gen_random_uuid(), '${variant}', 'receive', 5, 0, 5, 0, 'opening', 'manual');
+  `);
+  return { shop, product, variant, slug };
+}
