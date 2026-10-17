@@ -48,11 +48,14 @@ async function adminSignIn(admin: Page) {
   if (!fs.existsSync(STATE_FILE)) throw new Error("run stack.spec.ts first: the master's authenticator is enrolled there");
   await admin.getByLabel("Authenticator code").fill(await masterTotp(admin));
   await admin.getByRole("button", { name: "Confirm" }).click();
+  // Wait for the admin session before moving on (navigating away early leaves the desk signed out).
+  await expect(admin.getByRole("button", { name: "Sign out" })).toBeVisible({ timeout: 15_000 });
 }
 
 test("two accounts on one NID: a critical flag; the master freezes payouts with a code and undoes it", async ({ browser }) => {
   test.setTimeout(8 * 60_000);
   const nid = `1990${String(Date.now()).slice(-13)}`;
+  const secondName = `E2E Risk Second ${nid.slice(-5)}`;
   const first = await (await browser.newContext()).newPage();
   const second = await (await browser.newContext()).newPage();
   const admin = await (await browser.newContext()).newPage();
@@ -60,22 +63,24 @@ test("two accounts on one NID: a critical flag; the master freezes payouts with 
   await signUpByPhone(first, WEB, testPhone(), "E2E Risk First");
   await sendNid(first, "E2E Risk First", nid);
   await second.waitForTimeout(1_100);
-  const { userId } = await signUpByPhone(second, WEB, testPhone(), "E2E Risk Second");
-  await sendNid(second, "E2E Risk Second", nid);
+  const { userId } = await signUpByPhone(second, WEB, testPhone(), secondName);
+  await sendNid(second, secondName, nid);
 
   // The worker's debounced evaluation raises the flag; nothing is frozen without a person.
   await expect.poll(() => sql(`SELECT severity || '/' || status FROM risk_flags WHERE user_id = '${userId}' AND rule_key = 'accounts_per_nid'`), { timeout: 120_000, intervals: [5_000] }).toBe("critical/open");
   expect(sql(`SELECT COUNT(*) FROM payout_holds WHERE payee_id = '${userId}'`)).toBe("0");
 
   await adminSignIn(admin);
-  await admin.goto(`${ADMIN}/admin/risk`);
-  await expect(admin.getByTestId("risk-flags")).toContainText("E2E Risk Second");
+  await expect(async () => {
+    await admin.goto(`${ADMIN}/admin/risk`);
+    await expect(admin.getByTestId("risk-flags")).toContainText(secondName, { timeout: 5_000 });
+  }).toPass({ timeout: 60_000 });
   await expect(admin.getByTestId("risk-flags")).toContainText("Same NID on several accounts");
   await expect(admin.getByText(nid)).toHaveCount(0);
   await shot(admin, "desk");
 
-  await admin.getByTestId("risk-flags").getByRole("link", { name: "E2E Risk Second" }).click();
-  await expect(admin.getByRole("heading", { level: 1 })).toHaveText("E2E Risk Second");
+  await admin.getByTestId("risk-flags").getByRole("link", { name: secondName }).click();
+  await expect(admin.getByRole("heading", { level: 1 })).toHaveText(secondName);
   await admin.getByTestId("account-flags").getByRole("radio").first().check();
   await admin.getByTestId("risk-action").selectOption("freeze_payouts");
   await admin.getByLabel("Reason (10+ characters, kept in the audit log)").fill("Two accounts sent the same NID; checking.");
