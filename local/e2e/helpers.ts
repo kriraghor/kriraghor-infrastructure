@@ -5,6 +5,22 @@ import path from "node:path";
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 import { authenticator } from "otplib";
 
+/**
+ * kubectl against the local k3d API server, retried when the server is briefly unreachable (a TLS
+ * handshake timeout while image builds load the machine). Other failures throw at once.
+ */
+function kubectl(args: string, input?: string): string {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return execSync(`kubectl --context ${CONTEXT} ${args}`, { encoding: "utf8", ...(input === undefined ? {} : { input }) });
+    } catch (err) {
+      const text = String((err as { stderr?: unknown }).stderr ?? (err as Error).message);
+      if (attempt >= 6 || !/TLS handshake timeout|Unable to connect to the server|connection refused|i\/o timeout/i.test(text)) throw err;
+      execSync(process.platform === "win32" ? "ping -n 6 127.0.0.1 >NUL" : "sleep 5");
+    }
+  }
+}
+
 // *.localhost always means this machine (RFC 6761). Browsers know that; some Windows resolvers do not,
 // so API calls from the test process (APIRequestContext) resolve these names locally. Test process only.
 type LookupCallback = (err: NodeJS.ErrnoException | null, address: string | dns.LookupAddress[], family?: number) => void;
@@ -60,7 +76,7 @@ export async function emailCode(page: Page, to: string): Promise<string> {
 export function smsCode(local: string): string {
   const e164 = `+880${local.slice(1)}`;
   for (let i = 0; i < 20; i++) {
-    const logs = execSync(`kubectl --context ${CONTEXT} -n kriraghor logs deploy/backend-api --since=5m`, { encoding: "utf8" });
+    const logs = kubectl("-n kriraghor logs deploy/backend-api --since=5m");
     const blocks = logs.split("[sms:console]").filter((b) => b.includes(`to=${e164}`));
     const code = blocks.at(-1)?.match(/\b(\d{6})\b/)?.[1];
     if (code) return code;
@@ -146,5 +162,5 @@ export async function masterStepUp(request: APIRequestContext, page: Page, token
  * fixtures, read ledger balances. The statement goes in on stdin, so quotes need no shell escaping.
  */
 export function sql(statement: string): string {
-  return execSync(`kubectl --context ${CONTEXT} -n kriraghor-data exec -i postgres-0 -- psql -U kriraghor -d kriraghor -v ON_ERROR_STOP=1 -tA`, { input: statement, encoding: "utf8" }).trim();
+  return kubectl("-n kriraghor-data exec -i postgres-0 -- psql -U kriraghor -d kriraghor -v ON_ERROR_STOP=1 -tA", statement).trim();
 }
