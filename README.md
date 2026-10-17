@@ -77,12 +77,13 @@ Run the end-to-end checks:
 - `pay.spec.ts`, `payout.spec.ts`, `kyc.spec.ts`: money in, money out, NID review.
 - `esports.spec.ts`: the M21 player loop. It runs from UID review to paid entries, check-in, the room reveal, results, finalise and winnings, in about 10 minutes. It moves the stored times in the in-cluster dev database and waits for the minute tick.
 - `grounds.spec.ts`: M09. A member verifies the NID and sends ground-owner documents, lists a ground on vendor.kriraghor.com with a court and photos (from the public bucket at assets.kriraghor.localhost), it is approved and live on /grounds, and new prices change the public quote.
+- `bookings.spec.ts`: M10 on the v3 money rules. A member books tomorrow's first free slot in the widget on /grounds/[slug] and pays the ৳500 advance; the owner checks the player in on vendor.kriraghor.com/vendor/bookings (the ledger shows ৳400 to the owner and ৳100 fee); a second booking is cancelled (৳475 / ৳25); a third moves to Court 2; closures clash on the schedule page. The ground is a fixture written into the dev database, and `sql()` in `helpers.ts` moves stored times.
 
 ```bash
 cd local/e2e && npm install && npx playwright install chromium && npx playwright test
 ```
 
-Rebuild one app after a change: `local/build-images.sh web && local/deploy.sh web` (images use `pullPolicy: Always`).
+Rebuild one app after a change: `local/build-images.sh web && local/deploy.sh web`. Images keep the `:dev` tag, so `deploy.sh` restarts each deployment it releases to pull the new build (`pullPolicy: Always`).
 
 Tear down: `local/down.sh` (add `--all` to also remove the registry).
 

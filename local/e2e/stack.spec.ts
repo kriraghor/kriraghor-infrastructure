@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import { expect, test } from "@playwright/test";
-import { authenticator } from "otplib";
-import { ADMIN, D, ESPORTS, MASTER_PHONE, STATE_FILE, VENDOR, WEB, emailCode, smsCode } from "./helpers";
+import { ADMIN, D, ESPORTS, MASTER_PHONE, STATE_FILE, VENDOR, WEB, emailCode, masterTotp, smsCode } from "./helpers";
 
 /**
  * 0B exit check (build prompt, Part 4): the whole stack runs in k3d and SSO works across subdomains.
@@ -85,14 +84,12 @@ test("admin portal requires staff sign-in with TOTP and gives an admin session",
   // First run enrols the authenticator; later runs reuse the saved secret.
   const totpField = page.getByLabel("Authenticator code");
   await expect(totpField).toBeVisible();
-  let secret: string;
   if (await page.getByTestId("totp-secret").isVisible()) {
-    secret = ((await page.getByTestId("totp-secret").textContent()) ?? "").trim();
+    const secret = ((await page.getByTestId("totp-secret").textContent()) ?? "").trim();
     fs.writeFileSync(STATE_FILE, JSON.stringify({ secret }));
-  } else {
-    secret = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")).secret;
   }
-  await totpField.fill(authenticator.generate(secret));
+  // masterTotp never reuses a 30 s step that an earlier spec in this run already spent.
+  await totpField.fill(await masterTotp(page));
   await page.getByRole("button", { name: "Confirm" }).click();
 
   await expect(page).toHaveURL(`${ADMIN}/admin`);

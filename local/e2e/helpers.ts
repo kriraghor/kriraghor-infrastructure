@@ -140,3 +140,11 @@ export async function masterStepUp(request: APIRequestContext, page: Page, token
   expect(res.ok()).toBeTruthy();
   return (await res.json()).stepUpToken as string;
 }
+
+/**
+ * Run SQL in the in-cluster dev database (k3d only): move stored times for jobs and windows, build
+ * fixtures, read ledger balances. The statement goes in on stdin, so quotes need no shell escaping.
+ */
+export function sql(statement: string): string {
+  return execSync(`kubectl --context ${CONTEXT} -n kriraghor-data exec -i postgres-0 -- psql -U kriraghor -d kriraghor -v ON_ERROR_STOP=1 -tA`, { input: statement, encoding: "utf8" }).trim();
+}

@@ -16,6 +16,11 @@ release() {
   want "$name" || return 0
   log "helm upgrade --install ${name}"
   hl upgrade --install "$name" "$CHART" --namespace "$NS" "$@" --wait --timeout 6m
+  # Local images keep the same tag (:dev), so Helm sees no change: restart to pull the new build.
+  if kc -n "$NS" get deploy "$name" >/dev/null 2>&1; then
+    kc -n "$NS" rollout restart deploy "$name" >/dev/null
+    kc -n "$NS" rollout status deploy "$name" --timeout 6m
+  fi
 }
 
 image_exists() {
