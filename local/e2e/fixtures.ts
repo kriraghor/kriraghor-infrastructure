@@ -89,3 +89,42 @@ export function liveShopWithBoots(ownerId: string, run: string) {
   `);
   return { shop, product, variant, slug };
 }
+
+/**
+ * M11: a pro's roles and a live T20 scorer profile based in Dhanmondi (dev database only; the M11
+ * Postman run covers the credential, the review and the rate limits). Rates: T20 ৳2,500, T10 ৳1,500;
+ * night +20%; short notice +15% under 48 h; travel ৳300 north, ৳500 south, ৳1,500 outside Dhaka.
+ */
+export function liveHireProfile(proId: string, run: string) {
+  const profile = randomUUID();
+  const card = randomUUID();
+  const slug = `e2e-scorer-${run}`;
+  const area = "(SELECT id FROM areas WHERE key = 'dhanmondi')";
+  const role = "(SELECT id FROM hire_roles WHERE key = 'scorer')";
+  const headline = `E2E league scorer ${run}`;
+  sql(`
+    UPDATE user_roles SET status = 'active', activated_at = now() WHERE user_id = '${proId}' AND role = 'member';
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) SELECT gen_random_uuid(), '${proId}', 'member', 'active', now() WHERE NOT EXISTS (SELECT 1 FROM user_roles WHERE user_id = '${proId}' AND role = 'member');
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) VALUES (gen_random_uuid(), '${proId}', 'pro', 'active', now());
+    UPDATE users SET kyc_status = 'verified', authz_version = authz_version + 1 WHERE id = '${proId}';
+    INSERT INTO hire_profiles (id, user_id, role_id, slug, headline, sport_keys, experience_level, years, base_area_id, bio, status, live_version, live_snapshot, first_live_at, status_changed_at, public_headline, public_experience_level, public_area_id, normalised_hourly_poisha)
+      VALUES ('${profile}', '${proId}', ${role}, '${slug}', '${headline}', '{cricket}', 'semi_pro', 5, ${area}, 'Five seasons scoring in the Dhaka leagues.', 'live', 1,
+        jsonb_build_object('version', 1, 'headline', '${headline}', 'specialisation', null, 'sportKeys', '["cricket"]'::jsonb, 'experienceLevel', 'semi_pro', 'years', 5, 'baseAreaId', ${area}, 'bio', 'Five seasons scoring in the Dhaka leagues.', 'worksWithU16', false),
+        now(), now(), '${headline}', 'semi_pro', ${area}, 62500);
+    INSERT INTO rate_cards (id, profile_id, version, night_pct, short_notice_pct, short_notice_hours, travel_north_poisha, travel_south_poisha, travel_outside_poisha, max_jobs_per_day)
+      VALUES ('${card}', '${profile}', 1, 20, 15, 48, 30000, 50000, 150000, 2);
+    INSERT INTO rate_card_items (id, rate_card_id, unit, format, rate_poisha) VALUES (gen_random_uuid(), '${card}', 'match', 'T20', 250000), (gen_random_uuid(), '${card}', 'match', 'T10', 150000);
+  `);
+  return { profile, slug };
+}
+
+/** Move a hire job (and its busy guard) to start `minutes` from now, keeping its length. */
+export function moveHireJob(jobId: string, minutes: number) {
+  sql(`
+    UPDATE hire_jobs SET
+      end_at = now() + make_interval(mins => ${minutes}) + (end_at - start_at),
+      busy = tstzrange(now() + make_interval(mins => ${minutes - 30}), now() + make_interval(mins => ${minutes + 30}) + (end_at - start_at), '[)'),
+      start_at = now() + make_interval(mins => ${minutes})
+    WHERE id = '${jobId}';
+  `);
+}
