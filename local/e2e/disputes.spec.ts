@@ -38,6 +38,8 @@ async function adminSignIn(admin: Page) {
   if (!fs.existsSync(STATE_FILE)) throw new Error("run stack.spec.ts first: the master's authenticator is enrolled there");
   await admin.getByLabel("Authenticator code").fill(await masterTotp(admin));
   await admin.getByRole("button", { name: "Confirm" }).click();
+  // The session is set when the TOTP check answers; navigating earlier would cancel it.
+  await expect(admin.getByRole("button", { name: "Sign out" })).toBeVisible({ timeout: 15_000 });
 }
 
 test("a contested no-show is decided half on the desk, and a played booking is rated", async ({ browser }) => {
