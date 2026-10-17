@@ -59,7 +59,9 @@ test("a contested no-show is decided half on the desk, and a played booking is r
   sql(`UPDATE bookings SET start_at = date_trunc('hour', now()) - interval '1 hour', end_at = date_trunc('hour', now()) WHERE id = '${id}';
        UPDATE booking_slots SET period = tstzrange(date_trunc('hour', now()) - interval '1 hour', date_trunc('hour', now()), '[)') WHERE booking_id = '${id}' AND status = 'active';`);
   await owner.goto(`${VENDOR}/vendor/bookings`);
-  await owner.getByRole("tab").nth(1).click(); // today
+  // The booking's day tab: moved an hour back, it falls on yesterday just after Dhaka midnight.
+  const day = sql("SELECT to_char((date_trunc('hour', now()) - interval '1 hour') AT TIME ZONE 'Asia/Dhaka', 'FMDD Mon')");
+  await owner.getByRole("tab", { name: new RegExp(` ${day}$`) }).click();
   await owner.getByTestId("timeline-booking").first().click();
   await owner.getByTestId("no-show").click();
   await expect(owner.getByTestId("booking-panel")).toContainText("No-show");
