@@ -104,8 +104,10 @@ test("an organiser runs a paid badminton league: review, entries in escrow, draw
 
   // 3. Approve, close, draw, fixtures, the first result.
   await organiser.getByTestId("console-tab-teams").click();
-  for (let i = 0; i < 2; i++) await organiser.getByTestId("reg-approve").first().click();
-  await expect(organiser.getByTestId("reg-approve")).toHaveCount(0);
+  for (const left of [1, 0]) {
+    await organiser.getByTestId("reg-approve").first().click();
+    await expect(organiser.getByTestId("reg-approve")).toHaveCount(left);
+  }
   await organiser.getByTestId("console-tab-overview").click();
   await organiser.getByTestId("console-close").click();
   await expect(organiser.getByTestId("console-status")).toHaveText("Registration closed");
