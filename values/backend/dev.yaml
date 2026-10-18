@@ -16,7 +16,8 @@ env:
   SHUTDOWN_DRAIN_MS: "5000"
   DB_POOL_MAX: "5"
   REDIS_KEY_PREFIX: kg
-  CORS_ORIGINS: "http://kriraghor.localhost,http://*.kriraghor.localhost"
+  # M22: organiser sites are two labels deep ({sub}.esports.…), so they have their own pattern.
+  CORS_ORIGINS: "http://kriraghor.localhost,http://*.kriraghor.localhost,http://*.esports.kriraghor.localhost"
   ADMIN_ORIGINS: "http://admin.kriraghor.localhost"
   # M08 links in notifications and emails.
   WEB_APP_URL: http://kriraghor.localhost

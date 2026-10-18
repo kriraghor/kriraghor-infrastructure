@@ -159,3 +159,27 @@ export function liveGym(ownerId: string, run: string) {
   `);
   return { id: g, slug, name };
 }
+
+/**
+ * M22: a verified organisation owned by `ownerId` (organiser role active, owner member), an active
+ * percentage contract at the setting (10%) with its signed PDF on file, and a claimed subdomain,
+ * written straight into the database (dev only; the Postman run covers the review and the contract).
+ */
+export function verifiedOrganiser(ownerId: string, run: string) {
+  const id = randomUUID();
+  const name = `E2E Clutch League ${run}`;
+  const subdomain = `e2e-clutch-${run}`;
+  sql(`
+    UPDATE user_roles SET status = 'active', activated_at = now() WHERE user_id = '${ownerId}' AND role = 'member';
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) SELECT gen_random_uuid(), '${ownerId}', 'member', 'active', now() WHERE NOT EXISTS (SELECT 1 FROM user_roles WHERE user_id = '${ownerId}' AND role = 'member');
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) VALUES (gen_random_uuid(), '${ownerId}', 'organiser', 'active', now());
+    UPDATE users SET kyc_status = 'verified', authz_version = authz_version + 1 WHERE id = '${ownerId}';
+    INSERT INTO organisations (id, kind, owner_user_id, name, slug, about, status, verified_at, status_changed_at)
+      VALUES ('${id}', 'esports', '${ownerId}', '${name}', 'e2e-clutch-league-${run}', 'Weekly Free Fire scrims.', 'verified', now(), now());
+    INSERT INTO organisation_members (id, organisation_id, user_id, role, status) VALUES (gen_random_uuid(), '${id}', '${ownerId}', 'owner', 'active');
+    INSERT INTO organiser_contracts (id, organisation_id, model, billing_cycle, starts_on, status, signed_document_key, activated_at)
+      VALUES (gen_random_uuid(), '${id}', 'percentage', 'per_tournament', (now() AT TIME ZONE 'Asia/Dhaka')::date, 'active', 'contracts/${id}/e2e.pdf', now());
+    INSERT INTO organisation_branding (organisation_id, subdomain, primary_hex, accent_hex, tagline_en, status) VALUES ('${id}', '${subdomain}', '#0b7a4b', '#f2a33a', 'Weekly scrims', 'live');
+  `);
+  return { id, name, subdomain };
+}

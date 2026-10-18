@@ -52,3 +52,8 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+    # M22: organiser sites ({sub}.esports.kriraghor.localhost); the app reads the host (proxy.ts).
+    - host: "*.esports.kriraghor.localhost"
+      paths:
+        - path: /
+          pathType: Prefix

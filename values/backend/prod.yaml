@@ -16,7 +16,7 @@ env:
   SHUTDOWN_DRAIN_MS: "5000"
   DB_POOL_MAX: "10"
   REDIS_KEY_PREFIX: kg
-  CORS_ORIGINS: "https://kriraghor.com,https://www.kriraghor.com,https://esports.kriraghor.com,https://vendor.kriraghor.com"
+  CORS_ORIGINS: "https://kriraghor.com,https://www.kriraghor.com,https://esports.kriraghor.com,https://*.esports.kriraghor.com,https://vendor.kriraghor.com"
   ADMIN_ORIGINS: "https://admin.kriraghor.com"
   # M08 links in notifications and emails.
   WEB_APP_URL: https://kriraghor.com

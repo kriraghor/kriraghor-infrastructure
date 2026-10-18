@@ -53,6 +53,12 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+    # M22: organiser sites. The wildcard certificate needs DNS-01 (cert-manager; on Cloudflare a
+    # second-level wildcard needs an Advanced Certificate).
+    - host: "*.esports.kriraghor.com"
+      paths:
+        - path: /
+          pathType: Prefix
   tls:
     - secretName: esports-tls
-      hosts: [esports.kriraghor.com]
+      hosts: [esports.kriraghor.com, "*.esports.kriraghor.com"]
