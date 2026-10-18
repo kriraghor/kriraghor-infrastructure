@@ -128,3 +128,34 @@ export function moveHireJob(jobId: string, minutes: number) {
     WHERE id = '${jobId}';
   `);
 }
+
+/**
+ * M20: the owner's gym_owner role and a live gym open around the clock with the design packages (day
+ * ৳400, month ৳4,500, quarter ৳12,000), written straight into the database (dev only; the Postman
+ * run covers the listing, the review and the limits).
+ */
+export function liveGym(ownerId: string, run: string) {
+  const g = randomUUID();
+  const slug = `e2e-iron-yard-${run}`;
+  const name = `E2E Iron Yard ${run}`;
+  const area = "(SELECT id FROM areas WHERE key = 'banani')";
+  const pkgs = [
+    { id: randomUUID(), kind: "day", title: "Day pass", price: 40000, days: 1 },
+    { id: randomUUID(), kind: "month", title: "Monthly", price: 450000, days: 30 },
+    { id: randomUUID(), kind: "quarter", title: "Quarterly", price: 1200000, days: 90 },
+  ];
+  const hours = [0, 1, 2, 3, 4, 5, 6].map((dow) => ({ dow, openTime: "00:00", closeTime: "24:00", womenOnly: false }));
+  sql(`
+    UPDATE user_roles SET status = 'active', activated_at = now() WHERE user_id = '${ownerId}' AND role = 'member';
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) SELECT gen_random_uuid(), '${ownerId}', 'member', 'active', now() WHERE NOT EXISTS (SELECT 1 FROM user_roles WHERE user_id = '${ownerId}' AND role = 'member');
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) VALUES (gen_random_uuid(), '${ownerId}', 'gym_owner', 'active', now());
+    UPDATE users SET kyc_status = 'verified', authz_version = authz_version + 1 WHERE id = '${ownerId}';
+    INSERT INTO gyms (id, owner_id, slug, name, area_id, address_line, about, status, live_version, first_live_at, status_changed_at, public_name, public_area_id, public_day_price_poisha, public_month_price_poisha, live_snapshot)
+      VALUES ('${g}', '${ownerId}', '${slug}', '${name}', ${area}, 'House 9, Road 11, Banani, Dhaka', 'Free weights, squat racks and showers.', 'live', 1, now(), now(), '${name}', ${area}, 40000, 450000,
+        jsonb_build_object('version', 1, 'name', '${name}', 'areaId', ${area}, 'addressLine', 'House 9, Road 11, Banani, Dhaka', 'lat', null, 'lng', null, 'about', 'Free weights, squat racks and showers.',
+          'facilityIds', '[]'::jsonb, 'dailyCapacity', null, 'photos', '[]'::jsonb, 'hours', '${JSON.stringify(hours)}'::jsonb, 'packages', '${JSON.stringify(pkgs)}'::jsonb));
+    INSERT INTO gym_hours (id, gym_id, dow, open_time, close_time, women_only) SELECT gen_random_uuid(), '${g}', d, '00:00', '24:00', false FROM generate_series(0, 6) d;
+    ${pkgs.map((p) => `INSERT INTO gym_packages (id, gym_id, kind, title, price_poisha, days, status) VALUES ('${p.id}', '${g}', '${p.kind}', '${p.title}', ${p.price}, ${p.days}, 'active');`).join("\n    ")}
+  `);
+  return { id: g, slug, name };
+}
