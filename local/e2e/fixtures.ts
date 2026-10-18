@@ -183,3 +183,25 @@ export function verifiedOrganiser(ownerId: string, run: string) {
   `);
   return { id, name, subdomain };
 }
+
+/**
+ * M23: a published, featured big event running now, with a live YouTube stream (parsed reference),
+ * a title sponsor and an open two-option poll, written straight into the database (dev only; the
+ * Postman run covers the links, qualifiers and the desk).
+ */
+export function liveBigEvent(run: string) {
+  const id = randomUUID();
+  const slug = `e2e-championship-${run}`;
+  const title = `E2E Championship ${run}`;
+  const poll = randomUUID();
+  const [a, b] = [randomUUID(), randomUUID()];
+  sql(`
+    INSERT INTO esports_events (id, slug, title_en, title_bn, tagline_en, starts_at, ends_at, status, featured, published_at, created_by)
+      VALUES ('${id}', '${slug}', '${title}', 'ই২ই চ্যাম্পিয়নশিপ ${run}', 'Qualify online, win the final', now() - interval '1 hour', now() + interval '2 days', 'published', true, now(), gen_random_uuid());
+    INSERT INTO esports_event_streams (id, event_id, platform, url, video_ref, title, is_live, sort) VALUES (gen_random_uuid(), '${id}', 'youtube', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'yt:v:dQw4w9WgXcQ', 'Main stage', true, 0);
+    INSERT INTO esports_event_sponsors (id, event_id, name, tier, url, sort) VALUES (gen_random_uuid(), '${id}', 'E2E Walton', 'title', 'https://walton.example', 0);
+    INSERT INTO esports_event_polls (id, event_id, question_en, question_bn, status, opened_at) VALUES ('${poll}', '${id}', 'Who wins the final?', 'ফাইনালে কে জিতবে?', 'open', now());
+    INSERT INTO esports_event_poll_options (id, poll_id, label_en, label_bn, sort) VALUES ('${a}', '${poll}', 'Team Alpha', 'টিম আলফা', 0), ('${b}', '${poll}', 'Team Bravo', 'টিম ব্রাভো', 1);
+  `);
+  return { id, slug, title };
+}
