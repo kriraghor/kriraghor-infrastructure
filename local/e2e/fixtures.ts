@@ -205,3 +205,15 @@ export function liveBigEvent(run: string) {
   `);
   return { id, slug, title };
 }
+
+/**
+ * M16: mark an account NID-verified with an active member role (dev only; the Postman runs cover the
+ * M02 review). The team page then shows "NID ✓" for that member.
+ */
+export function nidVerified(userId: string) {
+  sql(`
+    UPDATE user_roles SET status = 'active', activated_at = now() WHERE user_id = '${userId}' AND role = 'member';
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) SELECT gen_random_uuid(), '${userId}', 'member', 'active', now() WHERE NOT EXISTS (SELECT 1 FROM user_roles WHERE user_id = '${userId}' AND role = 'member');
+    UPDATE users SET kyc_status = 'verified', authz_version = authz_version + 1 WHERE id = '${userId}';
+  `);
+}
