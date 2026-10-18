@@ -217,3 +217,25 @@ export function nidVerified(userId: string) {
     UPDATE users SET kyc_status = 'verified', authz_version = authz_version + 1 WHERE id = '${userId}';
   `);
 }
+
+/**
+ * M14: a verified sports organisation owned by `ownerId` (organiser role active, owner member, NID
+ * verified) with an active bKash payout account, written straight into the database (dev only; the
+ * Postman run covers the organisation review).
+ */
+export function verifiedSportsOrg(ownerId: string, run: string) {
+  const id = randomUUID();
+  const name = `E2E Mirpur Club ${run}`;
+  sql(`
+    UPDATE user_roles SET status = 'active', activated_at = now() WHERE user_id = '${ownerId}' AND role = 'member';
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) SELECT gen_random_uuid(), '${ownerId}', 'member', 'active', now() WHERE NOT EXISTS (SELECT 1 FROM user_roles WHERE user_id = '${ownerId}' AND role = 'member');
+    INSERT INTO user_roles (id, user_id, role, status, activated_at) VALUES (gen_random_uuid(), '${ownerId}', 'organiser', 'active', now());
+    UPDATE users SET kyc_status = 'verified', authz_version = authz_version + 1 WHERE id = '${ownerId}';
+    INSERT INTO organisations (id, kind, owner_user_id, name, slug, about, status, verified_at, status_changed_at)
+      VALUES ('${id}', 'sports', '${ownerId}', '${name}', 'e2e-mirpur-club-${run}', 'Weekend leagues.', 'verified', now(), now());
+    INSERT INTO organisation_members (id, organisation_id, user_id, role, status) VALUES (gen_random_uuid(), '${id}', '${ownerId}', 'owner', 'active');
+    INSERT INTO payout_accounts (id, user_id, type, account_no_enc, account_no_hash, account_no_last4, account_name, status, activated_at)
+      VALUES (gen_random_uuid(), '${ownerId}', 'bkash', 'e2e', md5('${id}') || md5('${run}'), '5678', 'E2E Organiser', 'active', now());
+  `);
+  return { id, name };
+}
