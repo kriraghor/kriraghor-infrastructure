@@ -13,7 +13,7 @@ probes:
   startup: { path: /api/health, periodSeconds: 3, failureThreshold: 40 }
 writableDirs:
   - /tmp
-  - /app/.next/cache
+  - /app/apps/esports/.next/cache
 
 replicaCount: 2
 autoscaling:

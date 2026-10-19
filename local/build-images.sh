@@ -10,14 +10,17 @@ APPS=("$@")
 [ ${#APPS[@]} -eq 0 ] && APPS=(backend web esports portal)
 
 for app in "${APPS[@]}"; do
-  if [ "${app}" = "backend" ]; then repo="${WORKSPACE_DIR}/kriraghor-backend"; else repo="${WORKSPACE_DIR}/kriraghor-frontend/apps/${app}"; fi
+  # The backend builds from its repo; the web apps from the kriraghor-frontend root (npm workspaces),
+  # with their own Dockerfile.
+  if [ "${app}" = "backend" ]; then context="${WORKSPACE_DIR}/kriraghor-backend"; dockerfile="${context}/Dockerfile"
+  else context="${WORKSPACE_DIR}/kriraghor-frontend"; dockerfile="${context}/apps/${app}/Dockerfile"; fi
   image="${PUSH_REGISTRY}/kriraghor-${app}:${TAG}"
-  if [ ! -f "${repo}/Dockerfile" ]; then
-    warn "skip ${app}: ${repo}/Dockerfile not found"
+  if [ ! -f "${dockerfile}" ]; then
+    warn "skip ${app}: ${dockerfile} not found"
     continue
   fi
   log "build ${image}"
-  docker build -t "${image}" "${repo}"
+  docker build -t "${image}" -f "${dockerfile}" "${context}"
   log "push ${image}"
   docker push "${image}" >/dev/null
 done

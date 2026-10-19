@@ -20,6 +20,10 @@ on:
       node-version:
         type: string
         default: "24.16.0"
+      workspaces:
+        description: true when the caller is an npm workspace (kriraghor-frontend since ADR-006's workspaces amendment) - install once at the repo root, build the image from the root with <app-dir>/Dockerfile
+        type: boolean
+        default: false
     secrets:
       INFRA_PR_TOKEN:
         required: false
@@ -40,8 +44,17 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
           cache: npm
-          cache-dependency-path: ${{ inputs.app-dir }}/package-lock.json
-      - run: npm ci
+          cache-dependency-path: ${{ inputs.workspaces && 'package-lock.json' || format('{0}/package-lock.json', inputs.app-dir) }}
+      - name: Install (the workspace root, or the app on its own)
+        working-directory: ${{ inputs.workspaces && '.' || inputs.app-dir }}
+        run: npm ci
+      - name: Shared packages (lint, typecheck, tests)
+        if: inputs.workspaces
+        working-directory: .
+        run: |
+          npm run lint -w @kriraghor/session -w @kriraghor/api-client -w @kriraghor/ui
+          npm run typecheck -w @kriraghor/session -w @kriraghor/api-client -w @kriraghor/ui
+          npm test -w @kriraghor/session -w @kriraghor/api-client -w @kriraghor/ui
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
@@ -56,6 +69,7 @@ jobs:
     uses: kriraghor/kriraghor-infrastructure/.github/workflows/build-scan-push.yml@main
     with:
       image: ${{ inputs.image }}
-      context: ${{ inputs.app-dir }}
+      context: ${{ inputs.workspaces && '.' || inputs.app-dir }}
+      file: ${{ inputs.workspaces && format('{0}/Dockerfile', inputs.app-dir) || '' }}
       values-files: ${{ inputs.values-files }}
     secrets: inherit

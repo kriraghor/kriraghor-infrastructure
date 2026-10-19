@@ -117,7 +117,7 @@ securityContext:
   capabilities:
     drop: ["ALL"]
 
-# Writable emptyDir mounts for read-only root filesystems (Next.js needs /app/.next/cache and /tmp).
+# Writable emptyDir mounts for read-only root filesystems (Next.js needs its .next/cache, /app/apps/<app>/.next/cache in the workspace images, and /tmp).
 writableDirs:
   - /tmp
 
