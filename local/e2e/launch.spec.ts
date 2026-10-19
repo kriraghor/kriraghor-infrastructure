@@ -4,7 +4,7 @@ import { liveGround } from "./fixtures";
 
 /**
  * kriraghor.com launch polish in k3d:
- *  1. The home renders the hero, the finder (grounds tab → /grounds?sport=football) and live grounds.
+ *  1. The home renders the hero, the finder (venues tab → /venues?sport=football) and live grounds.
  *  2. Every footer link answers 200; /go/esports redirects to esports.kriraghor.localhost.
  *  3. Forgot password: a phone code, a new password, signed in with it; the PASSWORD_CHANGED alert is
  *     stored with an SMS delivery.
@@ -32,11 +32,11 @@ test("kriraghor.com: home, footer, forgot password, 404, sitemap and the phone l
   await expect(visitor.getByTestId("next-up").or(visitor.getByTestId("next-up-empty"))).toBeVisible();
   await expect(visitor.getByTestId("home-ground").first()).toBeVisible({ timeout: 30_000 });
   await shot(visitor, "home");
-  await visitor.getByRole("tab", { name: "Grounds" }).click();
+  await visitor.getByRole("tab", { name: "Venues" }).click();
   await expect(visitor.getByLabel("Sport").locator("option", { hasText: "Football" })).toHaveCount(1);
   await visitor.getByLabel("Sport").selectOption({ label: "Football" });
   await visitor.getByTestId("finder-go").click();
-  await expect(visitor).toHaveURL(`${WEB}/grounds?sport=football`);
+  await expect(visitor).toHaveURL(`${WEB}/venues?sport=football`);
 
   // 2. Footer links, and the esports redirect.
   await visitor.goto(WEB);
@@ -45,9 +45,9 @@ test("kriraghor.com: home, footer, forgot password, 404, sitemap and the phone l
   for (const href of hrefs.filter((h) => h.startsWith("/") && !h.startsWith("/go/"))) {
     expect([href, (await request.get(`${WEB}${href}`)).status()]).toEqual([href, 200]);
   }
-  const go = await request.get(`${WEB}/go/esports/tournaments`, { maxRedirects: 0 });
+  const go = await request.get(`${WEB}/go/esports/events`, { maxRedirects: 0 });
   expect(go.status()).toBe(307);
-  expect(go.headers().location).toBe(`${ESPORTS}/tournaments`);
+  expect(go.headers().location).toBe(`${ESPORTS}/events`);
   await visitor.goto(`${WEB}/terms`);
   await expect(visitor.getByTestId("legal-page")).toContainText("Draft, under legal review");
 
@@ -76,12 +76,12 @@ test("kriraghor.com: home, footer, forgot password, 404, sitemap and the phone l
 
   // 4. Not found.
   expect((await request.get(`${WEB}/no-such-page-${run}`)).status()).toBe(404);
-  await visitor.goto(`${WEB}/grounds/no-such-ground-${run}`);
+  await visitor.goto(`${WEB}/venues/no-such-ground-${run}`);
   await expect(visitor.getByTestId("not-found")).toBeVisible();
 
   // 5. Sitemap and robots.
   const sitemap = await (await request.get(`${WEB}/sitemap.xml`)).text();
-  for (const path of ["/grounds", "/shop", "/hiring", "/gym", "/tournaments", "/terms", "/privacy"]) expect(sitemap).toContain(`<loc>http://kriraghor.localhost${path}</loc>`);
+  for (const path of ["/venues", "/shop", "/hiring", "/gym", "/events", "/terms", "/privacy"]) expect(sitemap).toContain(`<loc>http://kriraghor.localhost${path}</loc>`);
   expect(sitemap).not.toContain("/me<");
   const robots = await (await request.get(`${WEB}/robots.txt`)).text();
   expect(robots).toContain("Disallow: /");

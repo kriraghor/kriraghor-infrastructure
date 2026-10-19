@@ -48,7 +48,7 @@ test("a played booking reaches the owner, member and platform dashboards", async
   await shot(owner, "vendor-home");
   await owner.getByTestId("open-analytics").click();
   await expect(owner.getByRole("heading", { level: 1 })).toHaveText("Analytics");
-  await expect(owner.getByText("Revenue by ground (this period)")).toBeVisible();
+  await expect(owner.getByText("Revenue by venue (this period)")).toBeVisible();
   await shot(owner, "vendor-analytics");
 
   // 4. The member's overview.

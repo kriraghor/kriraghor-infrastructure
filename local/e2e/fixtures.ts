@@ -35,7 +35,7 @@ export function liveGround(ownerId: string, run: string) {
 
 /** Book tomorrow's first free hour in the widget and pay the advance; returns the booking id. */
 export async function bookTomorrow(page: Page, slug: string): Promise<string> {
-  await page.goto(`${WEB}/grounds/${slug}`);
+  await page.goto(`${WEB}/venues/${slug}`);
   const widget = page.getByTestId("booking-widget");
   await expect(widget).toBeVisible();
   await widget.getByRole("tab").nth(1).click();

@@ -10,7 +10,7 @@ import { ADMIN, API, VENDOR, WEB, masterStepUp, masterToken, signUpByPhone, smsC
  *     reviewer approves both and the ground_owner role becomes active.
  *  3. On vendor.kriraghor.com they add a ground, a court and three photos (to the public bucket), and
  *     send it for review; the reviewer sees the checks and approves it.
- *  4. The ground is on kriraghor.com/grounds with its photos served from the assets host.
+ *  4. The ground is on kriraghor.com/venues with its photos served from the assets host.
  *  5. The owner raises the base price on the pricing page and publishes; the public quote follows.
  */
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF");
@@ -79,7 +79,7 @@ test("a member becomes a ground owner, lists a ground, and it goes live with its
     await owner.goto(`${WEB}/account/business`);
     await expect(owner.getByTestId("business-apply")).toBeVisible({ timeout: 3000 });
   }).toPass({ timeout: 60_000 });
-  await owner.getByRole("button", { name: "Start my ground owner application" }).click();
+  await owner.getByRole("button", { name: "Start my venue owner application" }).click();
   const tl = owner.getByTestId("business-item-trade_license");
   await tl.getByRole("button", { name: "Send this document" }).click();
   await tl.getByLabel("Licence number").fill(`TRAD/DNCC/${run}`);
@@ -100,21 +100,21 @@ test("a member becomes a ground owner, lists a ground, and it goes live with its
   }
   await expect(async () => {
     await owner.goto(`${WEB}/account/business`);
-    await expect(owner.getByTestId("business-status")).toContainText("approved ground owner", { timeout: 3000 });
+    await expect(owner.getByTestId("business-status")).toContainText("approved venue owner", { timeout: 3000 });
   }).toPass({ timeout: 60_000 });
 
   // 3. The vendor desk (same account): a ground, a court and three photos; send for review.
   await owner.goto(`${VENDOR}/vendor`);
   await expect(owner.getByTestId("owner-active")).toBeVisible();
-  await owner.goto(`${VENDOR}/vendor/grounds`);
+  await owner.goto(`${VENDOR}/vendor/venues`);
   await owner.getByTestId("add-ground").click();
   const form = owner.getByTestId("add-ground-form");
-  await form.getByLabel("Ground name").fill(`E2E Turf ${run}`);
+  await form.getByLabel("Venue name").fill(`E2E Turf ${run}`);
   await form.getByLabel("Area").selectOption({ label: "Mirpur" });
   await form.getByLabel("Address").fill("Section 2, Mirpur, Dhaka");
   await form.getByLabel("Base price per hour (৳)").fill("2400");
   await form.getByRole("button", { name: "Create draft" }).click();
-  await expect(owner).toHaveURL(new RegExp(`${VENDOR}/vendor/grounds/[0-9a-f-]{36}$`));
+  await expect(owner).toHaveURL(new RegExp(`${VENDOR}/vendor/venues/[0-9a-f-]{36}$`));
   const groundId = owner.url().split("/").pop()!;
 
   const court = owner.getByTestId("add-court");
@@ -134,7 +134,7 @@ test("a member becomes a ground owner, lists a ground, and it goes live with its
 
   // 4. Live on kriraghor.com, photos from the public bucket.
   await expect(async () => {
-    await owner.goto(`${WEB}/grounds?area=`);
+    await owner.goto(`${WEB}/venues?area=`);
     await expect(owner.getByTestId("ground-cards")).toContainText(`E2E Turf ${run}`, { timeout: 3000 });
   }).toPass({ timeout: 60_000 });
   await shot(owner, "public-list");
@@ -152,7 +152,7 @@ test("a member becomes a ground owner, lists a ground, and it goes live with its
   expect(await quote()).toBe(240000); // Mon 12:00 Dhaka, no peak
 
   // 5. New prices: draft, publish, and the public quote follows.
-  await owner.goto(`${VENDOR}/vendor/grounds/${groundId}/pricing`);
+  await owner.goto(`${VENDOR}/vendor/venues/${groundId}/pricing`);
   await owner.getByLabel(/^Per hour/).fill("3000");
   await owner.getByTestId("save-draft").click();
   await expect(owner.getByText("Draft saved.")).toBeVisible();

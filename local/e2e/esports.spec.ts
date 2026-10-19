@@ -68,7 +68,7 @@ async function player(page: Page, name: string, uid: string): Promise<{ userId: 
 
 /** Register on esports, pay on the simulator (kriraghor.com), and come back to esports. */
 async function registerAndPay(page: Page, slug: string) {
-  await page.goto(`${ESPORTS}/t/${slug}/register`);
+  await page.goto(`${ESPORTS}/events/${slug}/register`);
   await page.getByTestId("confirm-register").click();
   await expect(page).toHaveURL(new RegExp(`^${WEB}/pay/`));
   await page.getByRole("radio", { name: "bKash" }).check();
@@ -146,7 +146,7 @@ test("UIDs, a reviewed tournament, paid entries, check-in, the room, results and
   // 3. Registration opens; both pay and come back to esports.
   sql(`UPDATE esports_tournaments SET registration_opens_at = now() - interval '1 hour' WHERE id = '${t.id}'`);
   await waitForStatus(request, t.slug, "registration_open");
-  await a.goto(`${ESPORTS}/t/${t.slug}`);
+  await a.goto(`${ESPORTS}/events/${t.slug}`);
   await expect(a.getByTestId("prize-table")).toContainText("৳50");
   await shot(a, "tournament");
   await registerAndPay(a, t.slug);
@@ -189,7 +189,7 @@ test("UIDs, a reviewed tournament, paid entries, check-in, the room, results and
   ];
   expect((await request.put(`${API}/admin/esports/matches/${matchId}/results`, { headers: admin, data: { rows } })).status()).toBe(200);
   expect((await request.post(`${API}/admin/esports/matches/${matchId}/results/post`, { headers: admin })).status()).toBe(200);
-  await a.goto(`${ESPORTS}/t/${t.slug}`);
+  await a.goto(`${ESPORTS}/events/${t.slug}`);
   await expect(a.getByTestId("standings")).toContainText("Rahim");
   sql(`UPDATE esports_matches SET dispute_closes_at = now() - interval '1 second' WHERE id = '${matchId}'`);
   await expect(async () => {

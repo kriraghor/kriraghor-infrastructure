@@ -25,7 +25,7 @@ test("a big event page: embedded stream, follow, a poll vote, and an announcemen
   const guest = await (await browser.newContext()).newPage();
   await guest.goto(`${ESPORTS}/`);
   await expect(guest.getByTestId("hero-event")).toContainText(ev.title);
-  const res = await guest.goto(`${ESPORTS}/e/${ev.slug}`);
+  const res = await guest.goto(`${ESPORTS}/showcases/${ev.slug}`);
   expect(res?.headers()["content-security-policy"]).toContain("frame-src https://www.youtube-nocookie.com");
   await expect(guest.getByTestId("event-title")).toHaveText(ev.title);
   await expect(guest.getByText("Presented by E2E Walton")).toBeVisible();
@@ -38,7 +38,7 @@ test("a big event page: embedded stream, follow, a poll vote, and an announcemen
   // 2. A member follows and votes.
   const member = await (await browser.newContext()).newPage();
   await signUpByPhone(member, WEB, testPhone(), `E2E Fan ${run}`);
-  await member.goto(`${ESPORTS}/e/${ev.slug}`);
+  await member.goto(`${ESPORTS}/showcases/${ev.slug}`);
   await member.getByTestId("event-follow").click();
   await expect(member.getByTestId("event-follow")).toHaveText(/Following · 1/);
   const poll = member.getByTestId("event-poll");

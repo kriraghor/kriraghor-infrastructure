@@ -6,7 +6,7 @@ import { VENDOR, WEB, signUpByPhone, sql, testPhone } from "./helpers";
  * M10 in k3d, on the v3 money rules:
  *  1. An owner (fixture: an active ground_owner role and a live two-court ground at ৳2,000/h flat with a
  *     25% advance, written straight into the dev database; the M09 spec covers the real listing flow).
- *  2. A member picks tomorrow's first free slot in the booking widget on /grounds/[slug], holds it, pays
+ *  2. A member picks tomorrow's first free slot in the booking widget on /venues/[slug], holds it, pays
  *     the ৳500 advance on the SSLCommerz simulator and comes back to the booking: confirmed, ৳1,500 due at
  *     the venue.
  *  3. The owner sees it on vendor.kriraghor.com/vendor/bookings; when it starts they check the player in:
@@ -34,7 +34,7 @@ test("book a slot, pay the advance, check in, cancel, move and close (v3 money)"
   const first = await bookTomorrow(member, g.slug);
   await expect(member.getByTestId("due-at-venue")).toHaveText("৳1,500");
   await shot(member, "booking-detail");
-  await member.goto(`${WEB}/grounds/${g.slug}`);
+  await member.goto(`${WEB}/venues/${g.slug}`);
   await member.getByTestId("booking-widget").getByRole("tab").nth(1).click();
   await expect(member.getByTestId("slot-grid").locator('[data-state="yours"]').first()).toBeVisible();
   await shot(member, "booking-widget");
@@ -76,7 +76,7 @@ test("book a slot, pay the advance, check in, cancel, move and close (v3 money)"
   await expect(owner.getByTestId("booking-panel")).toHaveCount(1);
   await expect.poll(() => sql(`SELECT count(*) FROM bookings WHERE ground_id = '${g.id}' AND court_ids = ARRAY['${g.courts[1]}']::uuid[] AND status = 'confirmed'`)).toBe("1");
 
-  await owner.goto(`${VENDOR}/vendor/grounds/${g.id}/schedule`);
+  await owner.goto(`${VENDOR}/vendor/venues/${g.id}/schedule`);
   const day3 = owner.locator("select").first();
   await day3.selectOption({ index: 3 });
   await owner.getByTestId("create-closure").click();

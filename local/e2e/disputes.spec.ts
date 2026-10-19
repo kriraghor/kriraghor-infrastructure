@@ -12,7 +12,7 @@ import { ADMIN, MASTER_PHONE, STATE_FILE, VENDOR, WEB, masterTotp, signUpByPhone
  *  3. On vendor.kriraghor.com the owner gives their side.
  *  4. On admin.kriraghor.com the master decides half with an authenticator code: ৳250 back to the
  *     member, ৳237.50 to the owner, ৳12.50 fee (the ledger and the booking show it).
- *  5. The member rates a played booking; the review shows on /grounds/[slug].
+ *  5. The member rates a played booking; the review shows on /venues/[slug].
  */
 const balance = (code: string) => Number(sql(`SELECT COALESCE(SUM(e.credit_poisha - e.debit_poisha), 0) FROM ledger_entries e JOIN ledger_accounts a ON a.id = e.account_id WHERE a.code = '${code}'`));
 const shot = (page: Page, name: string) => page.screenshot({ path: `test-results/disputes-${name}.png`, fullPage: true });
@@ -115,8 +115,8 @@ test("a contested no-show is decided half on the desk, and a played booking is r
   await member.getByTestId("star-4").click();
   await member.getByLabel("What was it like? (optional)").fill("Good turf and bright floodlights.");
   await member.getByTestId("submit-review").click();
-  await expect(member.getByText("Thank you. Your rating is on the ground’s page.")).toBeVisible();
-  await member.goto(`${WEB}/grounds/${g.slug}`);
+  await expect(member.getByText("Thank you. Your rating is on the venue’s page.")).toBeVisible();
+  await member.goto(`${WEB}/venues/${g.slug}`);
   await expect(member.getByTestId("ground-reviews")).toContainText("Good turf and bright floodlights.");
   await shot(member, "ground-reviews");
 });

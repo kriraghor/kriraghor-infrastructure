@@ -41,7 +41,7 @@ async function captainWithTeam(page: Page, name: string) {
 }
 
 async function registerAndPay(page: Page, slug: string) {
-  await page.goto(`${WEB}/tournaments/${slug}/register`);
+  await page.goto(`${WEB}/events/${slug}/register`);
   await page.getByTestId("pick-team").first().check();
   await page.getByTestId("pick-player").first().check();
   await page.getByTestId("accept-rules").check();
@@ -66,8 +66,8 @@ test("an organiser runs a paid badminton league: review, entries in escrow, draw
   const { userId: ownerId } = await signUpByPhone(organiser, WEB, testPhone(), `E2E Organiser ${run}`);
   const org = verifiedSportsOrg(ownerId, run);
   const name = `E2E Badminton League ${run}`;
-  await organiser.goto(`${VENDOR}/vendor/tournaments`);
-  await expect(organiser).toHaveURL(`${VENDOR}/vendor/tournaments/${org.id}`);
+  await organiser.goto(`${VENDOR}/vendor/events`);
+  await expect(organiser).toHaveURL(`${VENDOR}/vendor/events/${org.id}`);
   await organiser.getByTestId("new-tournament").click();
   const form = organiser.getByTestId("tournament-form");
   await form.getByTestId("tf-sport").selectOption("badminton");
@@ -94,7 +94,7 @@ test("an organiser runs a paid badminton league: review, entries in escrow, draw
   // 2. Two captains register and pay.
   await captainWithTeam(capA, `Shuvo Rahman ${run}`);
   await captainWithTeam(capB, `Arif Hossain ${run}`);
-  await visitor.goto(`${WEB}/tournaments`);
+  await visitor.goto(`${WEB}/events`);
   await expect(visitor.getByTestId("tournament-list")).toContainText(name);
   await registerAndPay(capA, slug);
   await registerAndPay(capB, slug);
@@ -126,7 +126,7 @@ test("an organiser runs a paid badminton league: review, entries in escrow, draw
   await shot(organiser, "overview");
 
   // The public hub shows the table and no personal data.
-  await visitor.goto(`${WEB}/tournaments/${slug}?tab=standings`);
+  await visitor.goto(`${WEB}/events/${slug}?tab=standings`);
   await expect(visitor.getByTestId("standings-row")).toHaveCount(2);
   await expect(visitor.getByTestId("hub-status")).toHaveText("Live");
   await shot(visitor, "hub");

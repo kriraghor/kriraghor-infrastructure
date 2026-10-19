@@ -53,7 +53,7 @@ test("an organiser drafts, funds and sends a tournament from the console; approv
   await expect(owner).toHaveURL(new RegExp(`/vendor/esports/${org.id}$`));
   await expect(owner.getByTestId("org-console")).toBeVisible();
   await shot(owner, "dashboard");
-  await owner.goto(`${VENDOR}/vendor/esports/${org.id}/tournaments`);
+  await owner.goto(`${VENDOR}/vendor/esports/${org.id}/events`);
   await owner.getByTestId("org-new-tournament").click();
   const form = owner.getByTestId("create-tournament");
   await form.getByRole("combobox", { name: "Game", exact: true }).selectOption({ label: "Free Fire" });
@@ -73,14 +73,14 @@ test("an organiser drafts, funds and sends a tournament from the console; approv
   await form.getByLabel("Starts at (Dhaka time)").fill(dhakaLocal(6));
   await form.getByLabel("Rules (Markdown)").fill("Play fair. No emulators.");
   await form.getByRole("button", { name: "Save draft" }).click();
-  await expect(owner).toHaveURL(new RegExp(`/vendor/esports/${org.id}/tournaments/[0-9a-f-]{36}$`));
+  await expect(owner).toHaveURL(new RegExp(`/vendor/esports/${org.id}/events/[0-9a-f-]{36}$`));
   const tournamentId = owner.url().split("/").pop()!;
   await expect(owner.getByTestId("org-tournament")).toContainText(title);
   expect(sql(`SELECT organisation_id || '/' || max_paid_kills FROM esports_tournaments WHERE id = '${tournamentId}'`)).toBe(`${org.id}/5`);
 
   // 3. Not before the fund; then fund it with bKash and send it.
   await owner.getByTestId("org-submit").click();
-  await expect(owner.getByText("Fund the prize pool before sending the tournament for review")).toBeVisible();
+  await expect(owner.getByText("Fund the prize pool before sending the event for review")).toBeVisible();
   await expect(owner.getByTestId("fund-now")).toHaveText("Fund now (৳180)");
   await shot(owner, "fund");
   await owner.getByTestId("fund-now").click();
@@ -91,7 +91,7 @@ test("an organiser drafts, funds and sends a tournament from the console; approv
   await expect(owner.getByTestId("pay-result")).toHaveAttribute("data-outcome", "paid");
   await expect.poll(() => sql(`SELECT status FROM organiser_prize_funds WHERE tournament_id = '${tournamentId}'`), { timeout: 60_000 }).toBe("funded");
   expect(balance("escrow:esports_prize_fund")).toBeGreaterThanOrEqual(18000);
-  await owner.goto(`${VENDOR}/vendor/esports/${org.id}/tournaments/${tournamentId}`);
+  await owner.goto(`${VENDOR}/vendor/esports/${org.id}/events/${tournamentId}`);
   await expect(owner.getByTestId("fund-box")).toContainText("Funded.");
   await owner.getByTestId("org-submit").click();
   await expect(owner.getByText("Sent. Kriraghor reviews it before it goes live.")).toBeVisible();
