@@ -12,7 +12,7 @@ metadata:
 spec:
   project: kriraghor
   sources:
-    - repoURL: https://github.com/kriraghor/kriraghor-infra.git
+    - repoURL: https://github.com/kriraghor/kriraghor-infrastructure.git
       targetRevision: main
       path: charts/kriraghor-app
       helm:
@@ -20,7 +20,7 @@ spec:
         valueFiles:
         - $values/values/backend/prod.yaml
         - $values/values/backend-migrate/prod.yaml
-    - repoURL: https://github.com/kriraghor/kriraghor-infra.git
+    - repoURL: https://github.com/kriraghor/kriraghor-infrastructure.git
       targetRevision: main
       ref: values
   destination:

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Repo** | `kriraghor-infra` |
+| **Repo** | `kriraghor-infrastructure` |
 | **Status** | 0B: charts, values for dev, staging and prod, Argo CD app-of-apps, local k3d scripts, CI workflows |
 | **Specs** | [`../kriraghor-docs`](../kriraghor-docs/README.md) |
 | **Decisions** | [ADR-003 Kubernetes deployment](../kriraghor-docs/decisions/ADR-003-kubernetes-deployment.md), [ADR-004 cross-subdomain auth](../kriraghor-docs/decisions/ADR-004-cross-subdomain-auth.md) |
@@ -35,9 +35,9 @@ local/                   k3d scripts (bash; Git Bash on Windows)
 | `backend-realtime` | `kriraghor-backend` · args `src/realtime.js` | `api.kriraghor.localhost/socket.io` | `api.kriraghor.com/socket.io` |
 | `backend-worker` | `kriraghor-backend` · args `src/worker.js` | – | – |
 | `backend-migrate` | `kriraghor-backend` · args `node_modules/sequelize-cli/lib/sequelize db:migrate` (pre-install/pre-upgrade hook Job) | – | – |
-| `web` | `kriraghor-web` | `kriraghor.localhost` | `kriraghor.com` (+ `www` redirect) |
-| `esports` | `kriraghor-esports` | `esports.kriraghor.localhost` | `esports.kriraghor.com` |
-| `portal` | `kriraghor-portal` | `admin.` and `vendor.kriraghor.localhost` | `admin.` and `vendor.kriraghor.com` |
+| `web` | `kriraghor-frontend/apps/web` | `kriraghor.localhost` | `kriraghor.com` (+ `www` redirect) |
+| `esports` | `kriraghor-frontend/apps/esports` | `esports.kriraghor.localhost` | `esports.kriraghor.com` |
+| `portal` | `kriraghor-frontend/apps/portal` | `admin.` and `vendor.kriraghor.localhost` | `admin.` and `vendor.kriraghor.com` |
 | `dev-data` (dev only) | PostgreSQL, Redis, SeaweedFS, Mailpit | `mail.kriraghor.localhost` (Mailpit UI) | managed services outside the cluster |
 
 All images are distroless (Node is the entrypoint, no shell), so values pass the script as `args`, never `command`.
@@ -56,7 +56,7 @@ winget install k3d.k3d Helm.Helm Kubernetes.kubectl
 
 If `get.helm.sh` does not resolve on your network, download Helm from its GitHub release instead; the scripts also find Helm in `%LOCALAPPDATA%\Programs\helm`.
 
-Run these from Git Bash in `kriraghor-infra`:
+Run these from Git Bash in `kriraghor-infrastructure`:
 
 ```bash
 local/k3d-up.sh          # cluster "kriraghor", registry localhost:5111, ingress-nginx on port 80

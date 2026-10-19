@@ -12,12 +12,12 @@ metadata:
 spec:
   project: kriraghor
   sources:
-    - repoURL: https://github.com/kriraghor/kriraghor-infra.git
+    - repoURL: https://github.com/kriraghor/kriraghor-infrastructure.git
       targetRevision: main
       path: charts/dev-data
       helm:
         releaseName: dev-data
-    - repoURL: https://github.com/kriraghor/kriraghor-infra.git
+    - repoURL: https://github.com/kriraghor/kriraghor-infrastructure.git
       targetRevision: main
       ref: values
   destination:

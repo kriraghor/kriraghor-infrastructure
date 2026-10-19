@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   ci:
-    uses: kriraghor/kriraghor-infra/.github/workflows/node-service.yml@main
+    uses: kriraghor/kriraghor-infrastructure/.github/workflows/node-service.yml@main
     with:
       image: kriraghor-backend
       values-files: values/backend/staging.yaml

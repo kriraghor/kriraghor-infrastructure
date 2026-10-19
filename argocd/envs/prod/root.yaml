@@ -9,7 +9,7 @@ metadata:
 spec:
   project: kriraghor
   source:
-    repoURL: https://github.com/kriraghor/kriraghor-infra.git
+    repoURL: https://github.com/kriraghor/kriraghor-infrastructure.git
     targetRevision: main
     path: argocd/envs/prod/apps
   destination:

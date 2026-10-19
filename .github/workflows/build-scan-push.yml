@@ -1,5 +1,5 @@
 # Shared image stage: build → Trivy (fails on fixable HIGH/CRITICAL) → push to GHCR (main only)
-# → pull request in kriraghor-infra bumping image.tag for staging. Prod is promoted later by
+# → pull request in kriraghor-infrastructure bumping image.tag for staging. Prod is promoted later by
 # promote.yml with the SAME tag: images are never rebuilt between environments (ADR-003).
 name: build-scan-push
 
@@ -9,6 +9,10 @@ on:
       image:
         type: string
         required: true
+      context:
+        description: Docker build context (an app folder in a monorepo)
+        type: string
+        default: "."
       values-files:
         type: string
         required: true
@@ -33,7 +37,7 @@ jobs:
       - name: Build (load for scanning)
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: .
+          context: ${{ inputs.context }}
           load: true
           tags: ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
           cache-from: type=gha
@@ -67,7 +71,7 @@ jobs:
       - if: steps.token.outputs.present == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: kriraghor/kriraghor-infra
+          repository: kriraghor/kriraghor-infrastructure
           token: ${{ secrets.INFRA_PR_TOKEN }}
       - if: steps.token.outputs.present == 'true'
         name: Bump image.tag

@@ -1,5 +1,5 @@
 # Reusable CI for kriraghor-backend (ADR-003):
-# lint → test (PostgreSQL + Redis services) → OpenAPI check → build → Trivy → push to GHCR → image-tag PR in kriraghor-infra.
+# lint → test (PostgreSQL + Redis services) → OpenAPI check → build → Trivy → push to GHCR → image-tag PR in kriraghor-infrastructure.
 # Called from the backend repo; see .github/workflow-templates/backend-ci.yml.
 # Third-party actions are pinned to commit SHAs (version in the comment); Dependabot keeps them current.
 name: node-service
@@ -12,7 +12,7 @@ on:
         type: string
         required: true
       values-files:
-        description: Space-separated values files in kriraghor-infra whose image.tag is bumped on main
+        description: Space-separated values files in kriraghor-infrastructure whose image.tag is bumped on main
         type: string
         default: values/backend/staging.yaml
       node-version:
@@ -20,7 +20,7 @@ on:
         default: "24.16.0"
     secrets:
       INFRA_PR_TOKEN:
-        description: Fine-grained token (or GitHub App token) with contents and pull-requests write on kriraghor-infra
+        description: Fine-grained token (or GitHub App token) with contents and pull-requests write on kriraghor-infrastructure
         required: false
 
 permissions:
@@ -78,7 +78,7 @@ jobs:
 
   image:
     needs: test
-    uses: kriraghor/kriraghor-infra/.github/workflows/build-scan-push.yml@main
+    uses: kriraghor/kriraghor-infrastructure/.github/workflows/build-scan-push.yml@main
     with:
       image: ${{ inputs.image }}
       values-files: ${{ inputs.values-files }}

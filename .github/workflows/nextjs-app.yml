@@ -10,9 +10,13 @@ on:
         type: string
         required: true
       values-files:
-        description: Space-separated values files in kriraghor-infra whose image.tag is bumped on main
+        description: Space-separated values files in kriraghor-infrastructure whose image.tag is bumped on main
         type: string
         required: true
+      app-dir:
+        description: The app folder in the caller repo (kriraghor-frontend apps/web, apps/esports, apps/portal)
+        type: string
+        default: "."
       node-version:
         type: string
         default: "24.16.0"
@@ -27,12 +31,16 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.app-dir }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ inputs.node-version }}
           cache: npm
+          cache-dependency-path: ${{ inputs.app-dir }}/package-lock.json
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
@@ -45,8 +53,9 @@ jobs:
 
   image:
     needs: test
-    uses: kriraghor/kriraghor-infra/.github/workflows/build-scan-push.yml@main
+    uses: kriraghor/kriraghor-infrastructure/.github/workflows/build-scan-push.yml@main
     with:
       image: ${{ inputs.image }}
+      context: ${{ inputs.app-dir }}
       values-files: ${{ inputs.values-files }}
     secrets: inherit
