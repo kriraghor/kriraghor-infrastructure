@@ -23,7 +23,7 @@ argocd/
 └─ envs/<dev|staging|prod>/root.yaml + apps/*.yaml   App of apps per environment
 platform/                cert-manager ClusterIssuers, ClusterSecretStore example
 local/                   k3d scripts (bash; Git Bash on Windows)
-.github/workflows/       Reusable CI: node-service, nextjs-app, build-scan-push, promote
+.github/workflows/       Reusable CI: node-service, nextjs-app, expo-app, build-scan-push, promote
 .github/workflow-templates/   Caller workflows to copy into each app repo
 ```
 
