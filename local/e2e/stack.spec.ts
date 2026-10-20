@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { expect, test } from "@playwright/test";
-import { ADMIN, D, ESPORTS, MASTER_PHONE, STATE_FILE, VENDOR, WEB, emailCode, masterTotp, smsCode } from "./helpers";
+import { ADMIN, D, ESPORTS, MASTER_PHONE, STATE_FILE, VENDOR, WEB, emailCode, finishSignUp, masterTotp, smsCode, startSignUp } from "./helpers";
 
 /**
  * 0B exit check (build prompt, Part 4): the whole stack runs in k3d and SSO works across subdomains.
@@ -17,18 +17,9 @@ test("SSO across subdomains: sign up on esports, same session on kriraghor.com",
   const helper = await context.newPage();
   const email = `e2e+${Date.now()}@kriraghor.test`;
 
-  await page.goto(`${ESPORTS}/sign-in`);
-  await page.getByRole("tab", { name: "Email code" }).click();
-  await page.getByLabel("Email address").fill(email);
-  await page.getByRole("button", { name: "Send code" }).click();
-  await expect(page.getByLabel("6-digit code")).toBeVisible();
-
-  await page.getByLabel("6-digit code").fill(await emailCode(helper, email));
-  await page.getByRole("button", { name: "Verify and continue" }).click();
-  await page.getByLabel("Your name").fill("E2E Player");
-  await page.getByRole("button", { name: "Create my account" }).click();
-
-  await expect(page).toHaveURL(`${ESPORTS}/me`);
+  // Sign-up on esports (no goal step there), then the same account on kriraghor.com.
+  await startSignUp(page, ESPORTS, email, () => emailCode(helper, email));
+  await finishSignUp(page, ESPORTS, "E2E Player");
   await expect(page.getByTestId("me-name")).toHaveText("E2E Player");
   const userId = (await page.getByTestId("me-id").textContent())?.trim();
   expect(userId).toMatch(/^[0-9a-f-]{36}$/);
@@ -65,7 +56,7 @@ test("admin portal requires staff sign-in with TOTP and gives an admin session",
   await expect(page).toHaveURL(`${ADMIN}/admin/sign-in`);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Staff sign-in");
 
-  await page.getByRole("button", { name: "Phone code" }).click();
+  await page.getByRole("radio", { name: "Phone code" }).click();
   await page.getByLabel("Mobile number").fill(MASTER_PHONE);
   // The API allows one code per number per 60 s (M01); on a quick rerun, wait out the cooldown it reports.
   for (let attempt = 0; attempt < 3; attempt++) {

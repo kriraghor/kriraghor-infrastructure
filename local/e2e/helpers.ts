@@ -95,19 +95,36 @@ export async function masterTotp(page: Page): Promise<string> {
   return authenticator.generate(secret);
 }
 
+/**
+ * The /signup wizard's first step: the mobile or email, then the code. Six digits submit by
+ * themselves (filling the first box spreads the code over all six).
+ */
+export async function startSignUp(page: Page, site: string, target: string, code: () => Promise<string> | string) {
+  await page.goto(`${site}/signup`);
+  await page.getByLabel("Mobile number or email").fill(target);
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByLabel("6-digit code")).toBeVisible();
+  await page.getByLabel("6-digit code").fill(await code());
+}
+
+/** The rest of the wizard: name, the goal step where the site has one (kriraghor.com), then the account page. */
+export async function finishSignUp(page: Page, site: string, name: string) {
+  await page.getByLabel("Your name").fill(name);
+  await page.getByTestId("signup-about-next").click();
+  const create = page.getByTestId("signup-create");
+  const done = page.getByTestId("signup-done");
+  await expect(create.or(done)).toBeVisible();
+  if (await create.isVisible()) await create.click();
+  await expect(done).toBeVisible();
+  await page.getByRole("link", { name: "Go to my account" }).click();
+  await expect(page).toHaveURL(`${site}/me`);
+}
+
 /** Sign up on a customer site with an email code. Returns the new user's id. */
 export async function signUpByEmail(page: Page, helper: Page, site: string, name: string): Promise<{ email: string; userId: string }> {
   const email = `e2e+${Date.now()}${Math.floor(Math.random() * 1000)}@kriraghor.test`;
-  await page.goto(`${site}/sign-in`);
-  await page.getByRole("tab", { name: "Email code" }).click();
-  await page.getByLabel("Email address").fill(email);
-  await page.getByRole("button", { name: "Send code" }).click();
-  await expect(page.getByLabel("6-digit code")).toBeVisible();
-  await page.getByLabel("6-digit code").fill(await emailCode(helper, email));
-  await page.getByRole("button", { name: "Verify and continue" }).click();
-  await page.getByLabel("Your name").fill(name);
-  await page.getByRole("button", { name: "Create my account" }).click();
-  await expect(page).toHaveURL(`${site}/me`);
+  await startSignUp(page, site, email, () => emailCode(helper, email));
+  await finishSignUp(page, site, name);
   const userId = ((await page.getByTestId("me-id").textContent()) ?? "").trim();
   return { email, userId };
 }
@@ -117,16 +134,8 @@ export const testPhone = () => `017${String(Date.now()).slice(-8)}`;
 
 /** Sign up on a customer site with a phone code (from the console SMS driver). Returns the new user's id. */
 export async function signUpByPhone(page: Page, site: string, phone: string, name: string): Promise<{ userId: string }> {
-  await page.goto(`${site}/sign-in`);
-  await page.getByRole("tab", { name: "Phone code" }).click();
-  await page.getByLabel("Mobile number").fill(phone);
-  await page.getByRole("button", { name: "Send code" }).click();
-  await expect(page.getByLabel("6-digit code")).toBeVisible();
-  await page.getByLabel("6-digit code").fill(smsCode(phone));
-  await page.getByRole("button", { name: "Verify and continue" }).click();
-  await page.getByLabel("Your name").fill(name);
-  await page.getByRole("button", { name: "Create my account" }).click();
-  await expect(page).toHaveURL(`${site}/me`);
+  await startSignUp(page, site, phone, () => smsCode(phone));
+  await finishSignUp(page, site, name);
   return { userId: ((await page.getByTestId("me-id").textContent()) ?? "").trim() };
 }
 

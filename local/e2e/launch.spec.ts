@@ -54,7 +54,7 @@ test("kriraghor.com: home, footer, forgot password, 404, sitemap and the phone l
   // 3. Forgot password (a fresh browser, as if on another device). One code per minute per number.
   const device = await (await browser.newContext()).newPage();
   await device.goto(`${WEB}/sign-in`);
-  await device.getByRole("tab", { name: "Password" }).click();
+  await device.getByTestId("use-password").click();
   await device.getByTestId("forgot-password").click();
   await expect(device).toHaveURL(`${WEB}/sign-in/reset`);
   await device.waitForTimeout(61_000);

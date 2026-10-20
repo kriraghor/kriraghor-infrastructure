@@ -21,7 +21,7 @@ const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
 
 async function adminSignIn(admin: Page) {
   await admin.goto(ADMIN);
-  await admin.getByRole("button", { name: "Phone code" }).click();
+  await admin.getByRole("radio", { name: "Phone code" }).click();
   await admin.getByLabel("Mobile number").fill(MASTER_PHONE);
   for (let attempt = 0; attempt < 3; attempt++) {
     await admin.getByRole("button", { name: "Send code" }).click();
