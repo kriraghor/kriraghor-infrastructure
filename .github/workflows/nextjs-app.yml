@@ -1,4 +1,4 @@
-# Reusable CI for the Next.js apps (web, esports, portal):
+# Reusable CI for the Next.js apps (web, esports, portal, gym):
 # lint → typecheck → unit tests → build → Playwright smoke → image build, Trivy, GHCR push, image-tag PR.
 name: nextjs-app
 
@@ -14,7 +14,7 @@ on:
         type: string
         required: true
       app-dir:
-        description: The app folder in the caller repo (kriraghor-frontend apps/web, apps/esports, apps/portal)
+        description: The app folder in the caller repo (kriraghor-frontend apps/web, apps/esports, apps/portal, apps/gym)
         type: string
         default: "."
       node-version:

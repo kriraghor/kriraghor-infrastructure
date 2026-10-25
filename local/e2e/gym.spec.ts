@@ -1,19 +1,27 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { liveGym } from "./fixtures";
-import { VENDOR, WEB, signUpByPhone, sql, testPhone } from "./helpers";
+import { GYM, VENDOR, WEB, signUpByPhone, sql, testPhone } from "./helpers";
 
 /**
- * M20 in k3d: a day pass end to end.
+ * M20 in k3d, on the gym app (gym.kriraghor.localhost, M24 D1): a day pass end to end.
  *  1. A gym owner with a live gym open around the clock, day pass ৳400 (fixture; the Postman run
- *     covers the listing and the review), and a member with a verified phone.
- *  2. The member finds the gym on /gym, buys today's day pass and pays with bKash on the simulator:
- *     the money waits in escrow (one hold of ৳400).
+ *     covers the listing and the review), and a member with a verified phone. The old gym URLs on
+ *     kriraghor.com and vendor.kriraghor.com answer 308 to the gym app, query kept (M24 §4.3).
+ *  2. The member finds the gym on /gyms, buys today's day pass and pays with bKash on the simulator
+ *     (the pay page stays on kriraghor.com): the money waits in escrow (one hold of ৳400).
  *  3. /me/passes shows the pass with its QR and the 6-character backup code.
- *  4. The owner types the code at the front desk on vendor.kriraghor.com: admitted. A second try is
+ *  4. The owner types the code at the front desk (/manage/:gymId/desk): admitted. A second try is
  *     refused ("Already used at …"). The owner's payable is ৳380 (5% fee); today's admissions list it.
  */
 const shot = (page: Page, name: string) => page.screenshot({ path: `test-results/gym-${name}.png`, fullPage: true });
 const balance = (code: string) => Number(sql(`SELECT COALESCE(SUM(e.credit_poisha - e.debit_poisha), 0) FROM ledger_entries e JOIN ledger_accounts a ON a.id = e.account_id WHERE a.code = '${code}'`));
+
+/** The old URL answers a permanent redirect (308) to `to`, without following it. */
+async function redirects(request: APIRequestContext, from: string, to: string) {
+  const res = await request.get(from, { maxRedirects: 0 });
+  expect(res.status(), from).toBe(308);
+  expect(res.headers().location, from).toBe(to);
+}
 
 test("a member buys a ৳400 day pass, shows its code at the front desk once, and the gym is paid ৳380", async ({ browser }) => {
   test.setTimeout(8 * 60_000);
@@ -26,11 +34,16 @@ test("a member buys a ৳400 day pass, shows its code at the front desk once, an
   const gym = liveGym(ownerId, run);
   await signUpByPhone(member, WEB, testPhone(), `E2E Member ${run}`);
 
+  // The old gym pages moved to the gym app: 308 with the query kept (signed in, as a real tap would be).
+  await redirects(member.request, `${WEB}/gym/gyms/${gym.slug}?ref=x`, `${GYM}/gyms/${gym.slug}?ref=x`);
+  await redirects(member.request, `${WEB}/me/passes`, `${GYM}/me/passes`);
+  await redirects(owner.request, `${VENDOR}/vendor/gyms/${gym.id}/desk`, `${GYM}/manage/${gym.id}/desk`);
+
   // 2. Find the gym and buy today's day pass.
-  await member.goto(`${WEB}/gym?tab=gyms`);
+  await member.goto(`${GYM}/gyms`);
   await expect(member.getByTestId("gym-cards")).toContainText(gym.name);
   await shot(member, "hub");
-  await member.goto(`${WEB}/gym/gyms/${gym.slug}`);
+  await member.goto(`${GYM}/gyms/${gym.slug}`);
   await expect(member.getByTestId("gym-name")).toHaveText(gym.name);
   const buy = member.getByTestId("pass-buy");
   await expect(buy.getByTestId("pass-date").first()).toHaveText("Today");
@@ -47,18 +60,18 @@ test("a member buys a ৳400 day pass, shows its code at the front desk once, an
 
   // 3. The pass with its QR and backup code.
   await expect(async () => {
-    await member.goto(`${WEB}/me/passes/${passCode}`);
+    await member.goto(`${GYM}/me/passes/${passCode}`);
     await expect(member.getByTestId("pass-status")).toHaveText("Active", { timeout: 3000 });
   }).toPass({ timeout: 60_000 });
   await expect(member.getByTestId("pass-qr")).toBeVisible();
   const backup = (await member.getByTestId("pass-backup").innerText()).trim();
   expect(backup).toMatch(/^[0-9A-HJKMNP-TV-Z]{6}$/);
   await shot(member, "pass-qr");
-  await member.goto(`${WEB}/me/passes`);
+  await member.goto(`${GYM}/me/passes`);
   await expect(member.getByTestId("my-pass").first()).toContainText(passCode);
 
   // 4. The front desk admits it once.
-  await owner.goto(`${VENDOR}/vendor/gyms/${gym.id}/desk`);
+  await owner.goto(`${GYM}/manage/${gym.id}/desk`);
   await owner.getByTestId("desk-code").fill(backup.toLowerCase());
   await owner.getByTestId("desk-admit").click();
   await expect(owner.getByTestId("desk-admitted")).toContainText(`E2E Member ${run}`);
@@ -71,6 +84,6 @@ test("a member buys a ৳400 day pass, shows its code at the front desk once, an
   await shot(owner, "desk-refused");
   await expect.poll(() => balance(`payable:user:${ownerId}`)).toBe(38000);
   expect(sql(`SELECT status FROM gym_passes WHERE code = '${passCode}'`)).toBe("redeemed");
-  await member.goto(`${WEB}/me/passes/${passCode}`);
+  await member.goto(`${GYM}/me/passes/${passCode}`);
   await expect(member.getByTestId("pass-status")).toHaveText("Used");
 });

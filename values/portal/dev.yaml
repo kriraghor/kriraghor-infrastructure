@@ -38,6 +38,7 @@ env:
   ESPORTS_URL: http://esports.kriraghor.localhost
   ADMIN_URL: http://admin.kriraghor.localhost
   VENDOR_URL: http://vendor.kriraghor.localhost
+  GYM_URL: http://gym.kriraghor.localhost
   COOKIE_PREFIX: kg
   GOOGLE_CLIENT_ID: ""
   APP_ENV: dev

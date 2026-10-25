@@ -16,13 +16,14 @@ env:
   SHUTDOWN_DRAIN_MS: "5000"
   DB_POOL_MAX: "5"
   REDIS_KEY_PREFIX: kg
-  CORS_ORIGINS: "https://staging.kriraghor.com,https://www.staging.kriraghor.com,https://esports.staging.kriraghor.com,https://*.esports.staging.kriraghor.com,https://vendor.staging.kriraghor.com"
+  CORS_ORIGINS: "https://staging.kriraghor.com,https://www.staging.kriraghor.com,https://esports.staging.kriraghor.com,https://*.esports.staging.kriraghor.com,https://vendor.staging.kriraghor.com,https://gym.staging.kriraghor.com"
   ADMIN_ORIGINS: "https://admin.staging.kriraghor.com"
   # M08 links in notifications and emails.
   WEB_APP_URL: https://staging.kriraghor.com
   ESPORTS_APP_URL: https://esports.staging.kriraghor.com
   VENDOR_APP_URL: https://vendor.staging.kriraghor.com/vendor
   ADMIN_APP_URL: https://admin.staging.kriraghor.com
+  GYM_APP_URL: https://gym.staging.kriraghor.com
   # M06 payments: SSLCommerz sandbox. SSLCOMMERZ_STORE_ID and SSLCOMMERZ_STORE_PASSWORD come from the
   # secret; until they exist, payment attempts answer PROVIDER_UNAVAILABLE. Test charges allowed.
   API_PUBLIC_URL: https://api.staging.kriraghor.com

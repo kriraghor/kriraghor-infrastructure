@@ -17,13 +17,14 @@ env:
   DB_POOL_MAX: "5"
   REDIS_KEY_PREFIX: kg
   # M22: organiser sites are two labels deep ({sub}.esports.…), so they have their own pattern.
-  CORS_ORIGINS: "http://kriraghor.localhost,http://*.kriraghor.localhost,http://*.esports.kriraghor.localhost"
+  CORS_ORIGINS: "http://kriraghor.localhost,http://*.kriraghor.localhost,http://*.esports.kriraghor.localhost,http://gym.kriraghor.localhost"
   ADMIN_ORIGINS: "http://admin.kriraghor.localhost"
   # M08 links in notifications and emails.
   WEB_APP_URL: http://kriraghor.localhost
   ESPORTS_APP_URL: http://esports.kriraghor.localhost
   VENDOR_APP_URL: http://vendor.kriraghor.localhost/vendor
   ADMIN_APP_URL: http://admin.kriraghor.localhost
+  GYM_APP_URL: http://gym.kriraghor.localhost
   # M06 payments: the gateway posts IPNs and returns to this origin. The SSLCommerz simulator plays the
   # gateway in dev (never in production; config refuses it), and masters can create test charges.
   API_PUBLIC_URL: http://api.kriraghor.localhost
