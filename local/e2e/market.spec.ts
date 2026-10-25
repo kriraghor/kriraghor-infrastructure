@@ -84,12 +84,14 @@ test("a member becomes a shop owner, lists boots in sizes, and buyers see the so
   await tl.getByLabel("Name on the licence").fill(`E2E Shop ${run} Sports`);
   await tl.getByLabel("Valid until").fill("2028-06-30");
   await owner.getByTestId("file-trade_license").setInputFiles({ name: "licence.pdf", mimeType: "application/pdf", buffer: PDF });
+  await tl.getByTestId("consent-trade_license").check(); // M02, 25 Oct 2026: explicit consent before sending
   await tl.getByRole("button", { name: "Send for checking" }).click();
   await expect(tl).toContainText("Being checked");
   const tin = owner.getByTestId("business-item-tin");
   await tin.getByRole("button", { name: "Send this document" }).click();
   await tin.getByLabel(/TIN/).fill(`3${run}${run.slice(0, 5)}`);
   await owner.getByTestId("file-tin").setInputFiles({ name: "tin.pdf", mimeType: "application/pdf", buffer: Buffer.concat([PDF, Buffer.from(run)]) });
+  await tin.getByTestId("consent-tin").check();
   await tin.getByRole("button", { name: "Send for checking" }).click();
   await expect(tin).toContainText("Being checked");
   await shot(owner, "business-docs");

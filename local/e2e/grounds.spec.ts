@@ -86,12 +86,14 @@ test("a member becomes a ground owner, lists a ground, and it goes live with its
   await tl.getByLabel("Name on the licence").fill(`E2E Owner ${run} Sports`);
   await tl.getByLabel("Valid until").fill("2027-12-31");
   await owner.getByTestId("file-trade_license").setInputFiles({ name: "licence.pdf", mimeType: "application/pdf", buffer: PDF });
+  await tl.getByTestId("consent-trade_license").check(); // M02, 25 Oct 2026: explicit consent before sending
   await tl.getByRole("button", { name: "Send for checking" }).click();
   await expect(tl).toContainText("Being checked");
   const lease = owner.getByTestId("business-item-deed_or_lease");
   await lease.getByRole("button", { name: "Send this document" }).click();
   await lease.getByLabel("Deed or lease").selectOption("lease");
   await owner.getByTestId("file-deed_or_lease").setInputFiles({ name: "lease.pdf", mimeType: "application/pdf", buffer: Buffer.concat([PDF, Buffer.from(run)]) });
+  await lease.getByTestId("consent-deed_or_lease").check();
   await lease.getByRole("button", { name: "Send for checking" }).click();
   await expect(lease).toContainText("Being checked");
   await shot(owner, "business-docs");
