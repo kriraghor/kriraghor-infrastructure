@@ -17,7 +17,7 @@ charts/
 values/
 ├─ backend/<env>.yaml    Shared backend config (loaded first for every backend release)
 ├─ backend-api|backend-realtime|backend-worker|backend-migrate/<env>.yaml
-└─ web|esports|portal/<env>.yaml
+└─ web|esports|portal|gym/<env>.yaml
 argocd/
 ├─ projects/kriraghor.yaml
 └─ envs/<dev|staging|prod>/root.yaml + apps/*.yaml   App of apps per environment
@@ -37,6 +37,7 @@ local/                   k3d scripts (bash; Git Bash on Windows)
 | `backend-migrate` | `kriraghor-backend` · args `node_modules/sequelize-cli/lib/sequelize db:migrate` (pre-install/pre-upgrade hook Job) | – | – |
 | `web` | `kriraghor-frontend/apps/web` | `kriraghor.localhost` | `kriraghor.com` (+ `www` redirect) |
 | `esports` | `kriraghor-frontend/apps/esports` | `esports.kriraghor.localhost` | `esports.kriraghor.com` |
+| `gym` | `kriraghor-frontend/apps/gym` | `gym.kriraghor.localhost` | `gym.kriraghor.com` |
 | `portal` | `kriraghor-frontend/apps/portal` | `admin.` and `vendor.kriraghor.localhost` | `admin.` and `vendor.kriraghor.com` |
 | `dev-data` (dev only) | PostgreSQL, Redis, SeaweedFS, Mailpit | `mail.kriraghor.localhost` (Mailpit UI) | managed services outside the cluster |
 

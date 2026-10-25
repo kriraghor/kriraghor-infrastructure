@@ -2,7 +2,7 @@ apiVersion: v2
 name: kriraghor-app
 description: >-
   One reusable chart for every Kriraghor workload (ADR-003): backend api, realtime, worker,
-  the migration Job, and the Next.js apps (web, esports, portal).
+  the migration Job, and the Next.js apps (web, esports, portal, gym).
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

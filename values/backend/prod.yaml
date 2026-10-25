@@ -16,13 +16,14 @@ env:
   SHUTDOWN_DRAIN_MS: "5000"
   DB_POOL_MAX: "10"
   REDIS_KEY_PREFIX: kg
-  CORS_ORIGINS: "https://kriraghor.com,https://www.kriraghor.com,https://esports.kriraghor.com,https://*.esports.kriraghor.com,https://vendor.kriraghor.com"
+  CORS_ORIGINS: "https://kriraghor.com,https://www.kriraghor.com,https://esports.kriraghor.com,https://*.esports.kriraghor.com,https://vendor.kriraghor.com,https://gym.kriraghor.com"
   ADMIN_ORIGINS: "https://admin.kriraghor.com"
   # M08 links in notifications and emails.
   WEB_APP_URL: https://kriraghor.com
   ESPORTS_APP_URL: https://esports.kriraghor.com
   VENDOR_APP_URL: https://vendor.kriraghor.com/vendor
   ADMIN_APP_URL: https://admin.kriraghor.com
+  GYM_APP_URL: https://gym.kriraghor.com
   # M06 payments: live SSLCommerz (store credentials in the secret). No simulator, no test charges.
   API_PUBLIC_URL: https://api.kriraghor.com
   SSLCOMMERZ_BASE_URL: https://securepay.sslcommerz.com

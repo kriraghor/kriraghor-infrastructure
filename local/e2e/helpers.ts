@@ -48,6 +48,7 @@ const systemPromisesLookup = dns.promises.lookup;
 export const D = "kriraghor.localhost";
 export const WEB = `http://${D}`;
 export const ESPORTS = `http://esports.${D}`;
+export const GYM = `http://gym.${D}`;
 export const ADMIN = `http://admin.${D}`;
 export const VENDOR = `http://vendor.${D}`;
 export const MAIL = `http://mail.${D}`;

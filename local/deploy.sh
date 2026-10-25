@@ -39,7 +39,7 @@ release backend-api -f "$V/backend/dev.yaml" -f "$V/backend-api/dev.yaml"
 release backend-realtime -f "$V/backend/dev.yaml" -f "$V/backend-realtime/dev.yaml"
 release backend-worker -f "$V/backend/dev.yaml" -f "$V/backend-worker/dev.yaml"
 
-for app in web esports portal; do
+for app in web esports portal gym; do
   want "$app" || continue
   if image_exists "$app"; then
     release "$app" -f "$V/$app/dev.yaml"
@@ -51,5 +51,5 @@ done
 log "done. Try:"
 echo "  http://api.${DOMAIN}/health"
 echo "  http://api.${DOMAIN}/api/docs"
-echo "  http://${DOMAIN}  http://esports.${DOMAIN}  http://admin.${DOMAIN}  http://vendor.${DOMAIN}"
+echo "  http://${DOMAIN}  http://esports.${DOMAIN}  http://gym.${DOMAIN}  http://admin.${DOMAIN}  http://vendor.${DOMAIN}"
 echo "  http://mail.${DOMAIN}   (Mailpit: OTP emails)"

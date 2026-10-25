@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the four images from the sibling repos (kriraghor-backend, kriraghor-frontend/apps/*) and push
+# Build the five images from the sibling repos (kriraghor-backend, kriraghor-frontend/apps/*) and push
 # them to the local k3d registry.
 #   local/build-images.sh                  all apps
 #   local/build-images.sh backend web      only these
@@ -7,7 +7,7 @@ source "$(dirname "$0")/lib.sh"
 need docker
 
 APPS=("$@")
-[ ${#APPS[@]} -eq 0 ] && APPS=(backend web esports portal)
+[ ${#APPS[@]} -eq 0 ] && APPS=(backend web esports portal gym)
 
 for app in "${APPS[@]}"; do
   # The backend builds from its repo; the web apps from the kriraghor-frontend root (npm workspaces),

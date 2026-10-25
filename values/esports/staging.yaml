@@ -38,6 +38,7 @@ env:
   ESPORTS_URL: https://esports.staging.kriraghor.com
   ADMIN_URL: https://admin.staging.kriraghor.com
   VENDOR_URL: https://vendor.staging.kriraghor.com
+  GYM_URL: https://gym.staging.kriraghor.com
   COOKIE_PREFIX: kgstg
   GOOGLE_CLIENT_ID: ""
   APP_ENV: staging
