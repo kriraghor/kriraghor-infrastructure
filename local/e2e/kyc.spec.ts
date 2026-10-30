@@ -72,7 +72,8 @@ test("a member verifies their NID and staff approve it", async ({ browser, reque
     await page.goto(`${WEB}/account/verification`);
     await expect(page.getByTestId("kyc-badge")).toContainText("Fully verified", { timeout: 2000 });
   }).toPass({ timeout: 60_000 });
-  await page.goto(`${WEB}/me`);
+  // The member area is organised by section (31 Oct 2026): verification is an Account tab.
+  await page.goto(`${WEB}/account/settings`);
   await expect(page.getByTestId("me-verification")).toHaveText("Identity verified");
   await ctx.close();
 });
