@@ -72,14 +72,16 @@ test("a member buys a ৳4,500 month, shows its code at the front desk once a da
 
   // 4. The front desk admits it once.
   await owner.goto(`${GYM}/manage/${gym.id}/desk`);
-  await owner.getByTestId("desk-code").fill(backup.toLowerCase());
-  await owner.getByTestId("desk-admit").click();
+  await owner.getByTestId("desk-search").fill(backup.toLowerCase());
+  await owner.getByTestId("desk-search-go").click();
+  await owner.getByTestId("desk-pass-admit").click();
   await expect(owner.getByTestId("desk-admitted")).toContainText(`E2E Member ${run}`);
   await expect(owner.getByTestId("desk-admitted")).toContainText(passCode);
   await expect(owner.getByTestId("desk-today")).toContainText(passCode);
   await shot(owner, "desk-admitted");
-  await owner.getByTestId("desk-code").fill(backup);
-  await owner.getByTestId("desk-admit").click();
+  await owner.getByTestId("desk-search").fill(backup);
+  await owner.getByTestId("desk-search-go").click();
+  await owner.getByTestId("desk-pass-admit").click();
   await expect(owner.getByTestId("desk-refused")).toContainText("Already used at");
   await shot(owner, "desk-refused");
   await expect.poll(() => balance(`payable:user:${ownerId}`)).toBe(427500);
