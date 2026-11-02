@@ -140,7 +140,6 @@ export function liveGym(ownerId: string, run: string) {
   const name = `E2E Iron Yard ${run}`;
   const area = "(SELECT id FROM areas WHERE key = 'banani')";
   const pkgs = [
-    { id: randomUUID(), kind: "day", title: "Day pass", price: 40000, days: 1 },
     { id: randomUUID(), kind: "month", title: "Monthly", price: 450000, days: 30 },
     { id: randomUUID(), kind: "quarter", title: "Quarterly", price: 1200000, days: 90 },
   ];
@@ -153,7 +152,7 @@ export function liveGym(ownerId: string, run: string) {
     INSERT INTO gyms (id, owner_id, slug, name, area_id, address_line, about, status, live_version, first_live_at, status_changed_at, public_name, public_area_id, public_day_price_poisha, public_month_price_poisha, live_snapshot)
       VALUES ('${g}', '${ownerId}', '${slug}', '${name}', ${area}, 'House 9, Road 11, Banani, Dhaka', 'Free weights, squat racks and showers.', 'live', 1, now(), now(), '${name}', ${area}, 40000, 450000,
         jsonb_build_object('version', 1, 'name', '${name}', 'areaId', ${area}, 'addressLine', 'House 9, Road 11, Banani, Dhaka', 'lat', null, 'lng', null, 'about', 'Free weights, squat racks and showers.',
-          'facilityIds', '[]'::jsonb, 'dailyCapacity', null, 'photos', '[]'::jsonb, 'hours', '${JSON.stringify(hours)}'::jsonb, 'packages', '${JSON.stringify(pkgs)}'::jsonb));
+          'facilityIds', '[]'::jsonb, 'photos', '[]'::jsonb, 'hours', '${JSON.stringify(hours)}'::jsonb, 'packages', '${JSON.stringify(pkgs)}'::jsonb));
     INSERT INTO gym_hours (id, gym_id, dow, open_time, close_time, women_only) SELECT gen_random_uuid(), '${g}', d, '00:00', '24:00', false FROM generate_series(0, 6) d;
     ${pkgs.map((p) => `INSERT INTO gym_packages (id, gym_id, kind, title, price_poisha, days, status) VALUES ('${p.id}', '${g}', '${p.kind}', '${p.title}', ${p.price}, ${p.days}, 'active');`).join("\n    ")}
   `);
