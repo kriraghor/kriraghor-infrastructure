@@ -211,9 +211,9 @@ test("UIDs, a reviewed tournament, paid entries, check-in, the room, results and
   const ledger = await (await request.get(`${API}/admin/ledger/invariants`, { headers: admin })).json();
   expect(ledger.ok).toBe(true);
 
-  // The admin desk shows it paid out; kriraghor.com's home has the esports strip.
+  // The admin desk shows it paid out; kriraghor.com's home has the esports section.
   await staff.goto(`${WEB}/`);
-  await expect(staff.getByTestId("esports-strip")).toBeVisible();
+  await expect(staff.getByTestId("home-section-esports")).toBeVisible();
   await shot(staff, "web-home-strip");
   await Promise.all([ctxA.close(), ctxB.close(), ctxStaff.close()]);
 });
