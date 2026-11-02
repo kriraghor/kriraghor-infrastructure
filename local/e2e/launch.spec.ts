@@ -34,8 +34,8 @@ test("kriraghor.com: home, footer, forgot password, 404, sitemap and the phone l
   await expect(visitor.getByTestId("home-ground").first()).toBeVisible({ timeout: 30_000 });
   await shot(visitor, "home");
   await visitor.getByRole("tab", { name: "Venues" }).click();
-  await expect(visitor.getByLabel("Sport").locator("option", { hasText: "Football" })).toHaveCount(1);
-  await visitor.getByLabel("Sport").selectOption({ label: "Football" });
+  await visitor.getByTestId("f-sport").click();
+  await visitor.getByRole("option", { name: "Football" }).click();
   await visitor.getByTestId("finder-go").click();
   await expect(visitor).toHaveURL(`${WEB}/venues?sport=football`);
 
