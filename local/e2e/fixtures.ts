@@ -238,3 +238,13 @@ export function verifiedSportsOrg(ownerId: string, run: string) {
   `);
   return { id, name };
 }
+
+/** M26: an open tournament post by this member, paid entry, closing in 10 days. Returns its slug and title. */
+export function tournamentPost(authorId: string, run: string) {
+  const slug = `e2e-futsal-cup-${run}`;
+  const title = `E2E Futsal Cup ${run}`;
+  sql(`INSERT INTO tournament_posts (id, slug, author_id, title, sport_id, format, division_id, district_id, venue_name, start_date, registration_deadline, entry_fee_poisha, organiser_name, description, last_activity_at)
+    SELECT gen_random_uuid(), '${slug}', '${authorId}', '${title}', (SELECT id FROM sports ORDER BY sort LIMIT 1), 'knockout', d.division_id, d.id, 'Kick Off Arena', CURRENT_DATE + 20, CURRENT_DATE + 10, 200000, 'E2E Club', 'Sixteen teams play over a weekend, seven a side.', now()
+    FROM districts d ORDER BY d.sort LIMIT 1`);
+  return { slug, title };
+}
