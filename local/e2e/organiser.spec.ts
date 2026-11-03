@@ -6,7 +6,7 @@ import { API, ADMIN, VENDOR, WEB, masterToken, signUpByPhone, testPhone } from "
  * M22 in k3d, switched off (product owner, 21 Oct 2026: esports is organised by Kriraghor only;
  * `esports.external_organisers_enabled` is false by default). An esports organisation that already
  * exists (written by the fixture with a branded subdomain) gets nothing:
- *  1. vendor.kriraghor.com/vendor/esports sends its owner to the sports events console;
+ *  1. vendor.kriraghor.com/vendor/esports sends its owner to the business home;
  *  2. its branded subdomain shows no organiser page, and the public branded-page API answers 404;
  *  3. staff cannot sign a new esports contract (409 ESPORTS_ORGANISERS_CLOSED).
  * With the switch on, the whole organiser flow is covered by the backend's Postman run (run-m22) and
@@ -21,11 +21,11 @@ test("outside esports organisers are switched off: no console, no branded page, 
   const { userId: ownerId } = await signUpByPhone(owner, WEB, testPhone(), `E2E Organiser ${run}`);
   const org = verifiedOrganiser(ownerId, run);
 
-  // 1. The esports console is gone: the owner lands on the sports events console.
+  // 1. The esports console is gone: the owner lands on the business home.
   await owner.goto(`${VENDOR}/vendor/esports`);
-  await expect(owner).toHaveURL(/\/vendor\/events/);
+  await expect(owner).toHaveURL(/\/vendor\/?$/);
   await owner.goto(`${VENDOR}/vendor/esports/${org.id}`);
-  await expect(owner).toHaveURL(/\/vendor\/events/);
+  await expect(owner).toHaveURL(/\/vendor\/?$/);
   await shot(owner, "redirected");
 
   // 2. No branded organiser page, on the site or in the API.
