@@ -81,7 +81,7 @@ test("kriraghor.com: home, footer, forgot password, 404, sitemap and the phone l
 
   // 5. Sitemap and robots.
   const sitemap = await (await request.get(`${WEB}/sitemap.xml`)).text();
-  for (const path of ["/venues", "/shop", "/hiring", "/tournaments", "/terms", "/privacy"]) expect(sitemap).toContain(`<loc>http://kriraghor.localhost${path}</loc>`);
+  for (const path of ["/venues", "/shop", "/hiring", "/events", "/terms", "/privacy"]) expect(sitemap).toContain(`<loc>http://kriraghor.localhost${path}</loc>`);
   expect(sitemap).not.toContain("/me<");
   expect(sitemap).not.toContain("<loc>http://kriraghor.localhost/gym</loc>");
   // The gym pages moved to gym.kriraghor.com (M24 D1): its own sitemap lists the hub.
