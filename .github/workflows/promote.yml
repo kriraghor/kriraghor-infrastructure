@@ -27,7 +27,7 @@ jobs:
           TAG=$(yq '.image.tag' "values/${APP}/staging.yaml")
           yq -i ".image.tag = \"${TAG}\"" "values/${APP}/prod.yaml"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-      - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      - uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
         with:
           branch: promote/${{ inputs.app }}
           commit-message: "chore(prod): promote ${{ inputs.app }} ${{ steps.copy.outputs.tag }}"
