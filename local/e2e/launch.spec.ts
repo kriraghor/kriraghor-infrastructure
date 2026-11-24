@@ -4,7 +4,7 @@ import { liveGround } from "./fixtures";
 
 /**
  * kriraghor.com launch polish in k3d:
- *  1. The home renders the hero, the finder (venues tab → /venues?sport=football) and live grounds.
+ *  1. The home renders the hero, live venues and the Venues section search (→ /venues?sport=football).
  *  2. Every footer link answers 200; /go/esports redirects to esports.kriraghor.localhost.
  *  3. Forgot password: a phone code, a new password, signed in with it; the PASSWORD_CHANGED alert is
  *     stored with an SMS delivery.
@@ -29,14 +29,20 @@ test("kriraghor.com: home, footer, forgot password, 404, sitemap and the phone l
   const visitor = await (await browser.newContext()).newPage();
   await visitor.goto(WEB);
   await expect(visitor.getByTestId("home-title")).toBeVisible();
-  await expect(visitor.getByTestId("finder")).toBeVisible();
+  await expect(visitor.getByTestId("home-network")).toBeVisible();
   await expect(visitor.getByTestId("next-up").or(visitor.getByTestId("next-up-empty"))).toBeVisible();
   await expect(visitor.getByTestId("home-ground").first()).toBeVisible({ timeout: 30_000 });
   await shot(visitor, "home");
+<<<<<<< HEAD
   await visitor.getByRole("tab", { name: "Venues" }).click();
   await visitor.getByTestId("f-sport").click();
   await visitor.getByRole("option", { name: "Football" }).click();
   await visitor.getByTestId("finder-go").click();
+=======
+  await visitor.getByTestId("venues-filter").click();
+  await visitor.getByRole("option", { name: "Football" }).click();
+  await visitor.getByTestId("section-go-venues").click();
+>>>>>>> origin/test/home-redesign
   await expect(visitor).toHaveURL(`${WEB}/venues?sport=football`);
 
   // 2. Footer links, and the esports redirect.
